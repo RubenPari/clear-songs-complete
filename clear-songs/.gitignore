@@ -1,0 +1,6 @@
+.idea/
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
+clear-songs
