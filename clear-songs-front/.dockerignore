@@ -1,0 +1,33 @@
+# Node modules (will be reinstalled)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+dist/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Testing
+karma.conf.js
+src/**/*.spec.ts
