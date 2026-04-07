@@ -63,8 +63,12 @@ func main() {
 	httptransport.SetUpRoutes(router, container)
 
 	// Create HTTP server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
 	srv := &http.Server{
-		Addr:    ":3000",
+		Addr:    ":" + port,
 		Handler: router,
 		// Good practice: enforce timeouts for server
 		ReadTimeout:  120 * time.Second,
@@ -74,7 +78,7 @@ func main() {
 
 	// Run server in a goroutine so that it doesn't block
 	go func() {
-		log.Println("Starting server on :3000")
+		log.Println("Starting server on :" + port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Server error: %v", err)
 		}

@@ -1,0 +1,12 @@
+app = "clear-songs-api"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
