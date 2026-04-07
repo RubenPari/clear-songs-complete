@@ -1,0 +1,145 @@
+<div class="track-management-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'TRACKS.TITLE' | translate }}</h1>
+      <p class="page-subtitle">{{ 'TRACKS.SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  <div class="content-layout">
+    <div class="main-section">
+      <div class="modern-card">
+        <div class="card-header-modern">
+          <div class="card-header-content">
+            <i class="bi bi-sliders me-2"></i>
+            <div>
+              <h5 class="card-title-modern">{{ 'TRACKS.DELETE_BY_RANGE' | translate }}</h5>
+              <p class="card-subtitle">{{ 'TRACKS.RANGE_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body-modern">
+          <div class="presets-section">
+            <span class="section-label">{{ 'TRACKS.PRESETS_LABEL' | translate }}</span>
+            <p class="section-description">{{ 'TRACKS.PRESETS_DESC' | translate }}</p>
+            <div class="presets-grid">
+              @for (preset of presetRanges; track preset.label) {
+                <button
+                  class="btn-preset"
+                  (click)="applyPreset(preset)"
+                >
+                  <i class="bi bi-lightning-fill"></i>
+                  <span>{{ preset.label | translate }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <form [formGroup]="rangeForm" class="range-form">
+            <span class="section-label">{{ 'TRACKS.CUSTOM_RANGE' | translate }}</span>
+            <p class="section-description">{{ 'TRACKS.CUSTOM_DESC' | translate }}</p>
+            
+            <div class="range-inputs">
+              <div class="input-group-modern">
+                <label for="min-tracks-input" class="input-label">{{ 'TRACKS.MIN_TRACKS' | translate }}</label>
+                <input 
+                  id="min-tracks-input"
+                  type="number" 
+                  class="form-control-modern" 
+                  formControlName="min" 
+                  min="0"
+                  placeholder="e.g. 1"
+                  [class.is-invalid]="rangeForm.get('min')?.invalid && rangeForm.get('min')?.touched"
+                />
+                <div class="input-help">{{ 'TRACKS.MIN_HELP' | translate }}</div>
+              </div>
+
+              <div class="range-separator">
+                <div class="separator-line"></div>
+                <span class="separator-text">{{ 'TRACKS.TO' | translate }}</span>
+                <div class="separator-line"></div>
+              </div>
+
+              <div class="input-group-modern">
+                <label for="max-tracks-input" class="input-label">{{ 'TRACKS.MAX_TRACKS' | translate }}</label>
+                <input 
+                  id="max-tracks-input"
+                  type="number" 
+                  class="form-control-modern" 
+                  formControlName="max" 
+                  min="0"
+                  placeholder="e.g. 10"
+                  [class.is-invalid]="rangeForm.get('max')?.invalid && rangeForm.get('max')?.touched"
+                />
+                <div class="input-help">{{ 'TRACKS.MAX_HELP' | translate }}</div>
+              </div>
+            </div>
+
+            @if (rangeForm.errors?.['invalidRange']) {
+              <div class="error-banner">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span>{{ 'TRACKS.ERR_RANGE' | translate }}</span>
+              </div>
+            }
+
+            <div class="form-actions">
+              <button class="btn-action btn-action-secondary" type="button" (click)="rangeForm.reset()">
+                <i class="bi bi-x-circle"></i>
+                <span>{{ 'TRACKS.BTN_CLEAR' | translate }}</span>
+              </button>
+              <button
+                class="btn-action btn-action-danger"
+                [disabled]="rangeForm.invalid"
+                (click)="deleteByRange()"
+              >
+                <i class="bi bi-trash"></i>
+                <span>{{ 'TRACKS.BTN_DELETE' | translate }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="modern-card info-card">
+        <div class="card-header-modern">
+          <div class="card-header-content">
+            <i class="bi bi-info-circle me-2"></i>
+            <h5 class="card-title-modern">{{ 'TRACKS.HOW_TITLE' | translate }}</h5>
+          </div>
+        </div>
+        <div class="card-body-modern">
+          <div class="info-list">
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-1-circle-fill"></i>
+              </div>
+              <div class="info-text">{{ 'TRACKS.HOW_1' | translate }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-2-circle-fill"></i>
+              </div>
+              <div class="info-text">{{ 'TRACKS.HOW_2' | translate }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-3-circle-fill"></i>
+              </div>
+              <div class="info-text">{{ 'TRACKS.HOW_3' | translate }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">
+                <i class="bi bi-shield-check"></i>
+              </div>
+              <div class="info-text">{{ 'TRACKS.HOW_4' | translate }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

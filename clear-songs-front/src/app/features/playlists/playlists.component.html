@@ -1,0 +1,186 @@
+<div class="playlist-management">
+  <div class="page-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">{{ 'PLAYLISTS.TITLE' | translate }}</h1>
+        <p class="page-subtitle">{{ 'PLAYLISTS.SUBTITLE' | translate }}</p>
+      </div>
+      <button class="btn btn-reset" type="button" (click)="resetForm()">
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>{{ 'PLAYLISTS.RESET' | translate }}</span>
+      </button>
+    </div>
+  </div>
+
+  @if (loadingService.loading()) {
+    <div class="loading-banner">
+      <div class="spinner-border spinner-border-sm text-primary" role="status">
+        <span class="visually-hidden">{{ 'COMMON.LOADING' | translate }}</span>
+      </div>
+      <span class="loading-text">{{ 'PLAYLISTS.PROCESSING' | translate }}</span>
+    </div>
+  }
+
+  <div class="content-grid">
+    <div class="form-section">
+      <div class="modern-card">
+        <div class="card-header-modern">
+          <div class="card-header-content">
+            <i class="bi bi-playlist me-2"></i>
+            <div>
+              <h5 class="card-title-modern">{{ 'PLAYLISTS.TARGET_TITLE' | translate }}</h5>
+              <p class="card-subtitle">{{ 'PLAYLISTS.TARGET_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body-modern">
+          @if (loadingPlaylists()) {
+            <div class="playlists-loading">
+              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">{{ 'COMMON.LOADING' | translate }}</span>
+              </div>
+              <span class="loading-text">{{ 'PLAYLISTS.LOADING_PLAYLISTS' | translate }}</span>
+            </div>
+          }
+
+          @if (!loadingPlaylists() && userPlaylists().length > 0) {
+            <div class="playlists-section">
+              <span class="section-label">{{ 'PLAYLISTS.SELECT_PLAYLIST' | translate }}</span>
+              <p class="section-description">{{ 'PLAYLISTS.SELECT_DESC' | translate }}</p>
+              <div class="playlists-grid">
+                @for (playlist of userPlaylists(); track playlist.id) {
+                  <button
+                    type="button"
+                    class="playlist-card"
+                    [class.selected]="selectedPlaylistId() === playlist.id"
+                    (click)="selectPlaylist(playlist)"
+                  >
+                    <div class="playlist-image-wrapper">
+                      @if (playlist.image_url) {
+                        <img [src]="playlist.image_url" [alt]="playlist.name" class="playlist-image" (error)="playlist.image_url = undefined" />
+                      } @else {
+                        <div class="playlist-image-placeholder">
+                          <i class="bi bi-music-note-list"></i>
+                        </div>
+                      }
+                      @if (selectedPlaylistId() === playlist.id) {
+                        <div class="playlist-selected-badge">
+                          <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                      }
+                    </div>
+                    <div class="playlist-name">{{ playlist.name }}</div>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="actions-section">
+              <button
+                class="btn-action btn-action-primary"
+                type="button"
+                [disabled]="!selectedPlaylistId() || loadingService.loading()"
+                (click)="handleAction('playlist')"
+              >
+                <i class="bi bi-playlist-x"></i>
+                <span>{{ 'PLAYLISTS.BTN_CLEAR' | translate }}</span>
+              </button>
+              <button
+                class="btn-action btn-action-danger"
+                type="button"
+                [disabled]="!selectedPlaylistId() || loadingService.loading()"
+                (click)="handleAction('playlistAndLibrary')"
+                [title]="'PLAYLISTS.DETAIL_CLEAR_LIB_DESC' | translate"
+              >
+                <i class="bi bi-music-note-list"></i>
+                <span>{{ 'PLAYLISTS.BTN_CLEAR_LIB' | translate }}</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="modern-card">
+        <div class="card-header-modern">
+          <div class="card-header-content">
+            <i class="bi bi-info-circle me-2"></i>
+            <h5 class="card-title-modern">{{ 'PLAYLISTS.DETAILS_TITLE' | translate }}</h5>
+          </div>
+        </div>
+        <div class="card-body-modern">
+          <div class="info-item">
+            <div class="info-icon info-icon-primary">
+              <i class="bi bi-playlist-x"></i>
+            </div>
+            <div class="info-content">
+              <h6 class="info-title">{{ 'PLAYLISTS.DETAIL_CLEAR_TITLE' | translate }}</h6>
+              <p class="info-description">{{ 'PLAYLISTS.DETAIL_CLEAR_DESC' | translate }}</p>
+            </div>
+          </div>
+
+          <div class="info-divider"></div>
+
+          <div class="info-item info-item-warning">
+            <div class="info-icon info-icon-warning">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="info-content">
+              <h6 class="info-title">{{ 'PLAYLISTS.DETAIL_CLEAR_LIB_TITLE' | translate }}</h6>
+              <p class="info-description">{{ 'PLAYLISTS.DETAIL_CLEAR_LIB_DESC' | translate }}</p>
+            </div>
+          </div>
+
+          <div class="tips-section">
+            <h6 class="tips-title">{{ 'PLAYLISTS.NOTES_TITLE' | translate }}</h6>
+            <ul class="tips-list">
+              <li>
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ 'PLAYLISTS.NOTE_1' | translate }}</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ 'PLAYLISTS.NOTE_2' | translate }}</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ 'PLAYLISTS.NOTE_3' | translate }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (lastOperation()) {
+    <div class="status-card">
+      <div class="modern-card">
+        <div class="card-header-modern">
+          <div class="card-header-content">
+            <i class="bi bi-clock-history me-2"></i>
+            <h5 class="card-title-modern">{{ 'PLAYLISTS.LAST_OP' | translate }}</h5>
+          </div>
+        </div>
+        <div class="card-body-modern">
+          <div class="status-content">
+            <div class="status-icon" [class.status-icon-warning]="lastOperation()!.action === 'playlistAndLibrary'">
+              <i class="bi" [class.bi-check-circle-fill]="lastOperation()!.action === 'playlist'" [class.bi-exclamation-triangle-fill]="lastOperation()!.action === 'playlistAndLibrary'"></i>
+            </div>
+            <div class="status-details">
+              <div class="status-title">
+                {{ (lastOperation()!.action === 'playlist' ? 'PLAYLISTS.OP_CLEARED' : 'PLAYLISTS.OP_CLEARED_LIB') | translate }}
+              </div>
+              <div class="status-meta">
+                <span class="status-id">{{ 'PLAYLISTS.PLAYLIST_ID' | translate }}: <code>{{ lastOperation()!.playlistId }}</code></span>
+                <span class="status-separator">•</span>
+                <span class="status-time">{{ lastOperation()!.timestamp | date: 'medium' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
