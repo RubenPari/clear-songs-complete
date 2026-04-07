@@ -1,0 +1,303 @@
+// ============================================
+// CLEAR SONGS - Bootstrap Theme Override
+// ============================================
+// Dark-first premium theme for Bootstrap 5.3
+// ============================================
+@use 'sass:color';
+
+// ============================================
+// Custom Color Palette
+// ============================================
+$primary: #1DB954;
+$secondary: #FF2D92;
+$success: #1DB954;
+$danger: #FF4757;
+$warning: #FFB800;
+$info: #00D4FF;
+$light: #1A1A1E;
+$dark: #0A0A0B;
+
+// ============================================
+// Typography
+// ============================================
+$font-family-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-family-base: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-family-sans-serif: $font-family-base;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-bolder: 800;
+
+$font-size-base: 0.9375rem;
+$font-size-sm: 0.8125rem;
+$font-size-lg: 1.0625rem;
+
+$headings-font-family: $font-family-display;
+$headings-font-weight: 700;
+$headings-line-height: 1.2;
+$headings-margin-bottom: 0.5rem;
+
+$h1-font-size: 2.5rem;
+$h2-font-size: 2rem;
+$h3-font-size: 1.5rem;
+$h4-font-size: 1.25rem;
+$h5-font-size: 1rem;
+$h6-font-size: 0.875rem;
+
+// ============================================
+// Colors
+// ============================================
+$body-bg: #0A0A0B;
+$body-color: #FFFFFF;
+$text-muted: #6A6A6A;
+
+// ============================================
+// Border Radius
+// ============================================
+$border-radius: 0.75rem;
+$border-radius-sm: 0.5rem;
+$border-radius-lg: 1rem;
+$border-radius-xl: 1.5rem;
+$border-radius-pill: 9999px;
+
+// ============================================
+// Shadows
+// ============================================
+$box-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+$box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+$box-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+// ============================================
+// Components
+// ============================================
+$component-active-bg: $primary;
+$component-active-color: $dark;
+
+$link-color: $primary;
+$link-hover-color: color.adjust($primary, $lightness: 10%);
+
+// ============================================
+// Cards
+// ============================================
+$card-bg: rgba(26, 26, 30, 0.8);
+$card-border-width: 1px;
+$card-border-color: rgba(255, 255, 255, 0.06);
+$card-border-radius: $border-radius-lg;
+$card-cap-bg: rgba(255, 255, 255, 0.03);
+$card-cap-padding-y: 1.25rem;
+$card-cap-padding-x: 1.5rem;
+$card-spacer-y: 1.5rem;
+$card-spacer-x: 1.5rem;
+
+// ============================================
+// Buttons
+// ============================================
+$btn-padding-y: 0.75rem;
+$btn-padding-x: 1.5rem;
+$btn-font-family: $font-family-display;
+$btn-font-size: 0.875rem;
+$btn-font-weight: 600;
+$btn-letter-spacing: 0.02em;
+$btn-border-radius: $border-radius;
+$btn-border-radius-sm: $border-radius-sm;
+$btn-border-radius-lg: $border-radius-lg;
+
+$btn-focus-box-shadow: 0 0 0 0.25rem rgba($primary, 0.25);
+
+// ============================================
+// Forms
+// ============================================
+$input-bg: rgba(255, 255, 255, 0.03);
+$input-color: #FFFFFF;
+$input-border-color: rgba(255, 255, 255, 0.1);
+$input-border-width: 1px;
+$input-border-radius: $border-radius;
+$input-padding-y: 0.875rem;
+$input-padding-x: 1.125rem;
+$input-font-size: 0.875rem;
+$input-font-family: $font-family-base;
+
+$input-focus-bg: rgba(255, 255, 255, 0.06);
+$input-focus-border-color: $primary;
+$input-focus-color: $input-color;
+$input-focus-box-shadow: 0 0 0 3px rgba($primary, 0.25);
+
+$input-placeholder-color: #6A6A6A;
+
+$form-label-color: #B3B3B3;
+$form-label-font-size: 0.8125rem;
+$form-label-font-weight: 600;
+$form-label-margin-bottom: 0.5rem;
+
+// ============================================
+// Tables
+// ============================================
+$table-bg: transparent;
+$table-color: #FFFFFF;
+$table-border-color: rgba(255, 255, 255, 0.06);
+$table-hover-bg: rgba(255, 255, 255, 0.03);
+$table-striped-bg: rgba(255, 255, 255, 0.02);
+
+$table-th-font-weight: 700;
+$table-cell-padding-y: 1rem;
+$table-cell-padding-x: 1.25rem;
+
+// ============================================
+// Dropdowns
+// ============================================
+$dropdown-bg: rgba(18, 18, 20, 0.95);
+$dropdown-color: #FFFFFF;
+$dropdown-border-color: rgba(255, 255, 255, 0.1);
+$dropdown-border-radius: $border-radius-lg;
+$dropdown-divider-bg: rgba(255, 255, 255, 0.06);
+$dropdown-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+$dropdown-link-color: #B3B3B3;
+$dropdown-link-hover-color: #FFFFFF;
+$dropdown-link-hover-bg: rgba(255, 255, 255, 0.06);
+$dropdown-link-active-color: $dark;
+$dropdown-link-active-bg: $primary;
+
+$dropdown-item-padding-y: 0.625rem;
+$dropdown-item-padding-x: 1.25rem;
+
+// ============================================
+// Modals
+// ============================================
+$modal-content-bg: rgba(18, 18, 20, 0.98);
+$modal-content-border-color: rgba(255, 255, 255, 0.1);
+$modal-content-border-radius: $border-radius-xl;
+$modal-header-border-color: rgba(255, 255, 255, 0.06);
+$modal-footer-border-color: rgba(255, 255, 255, 0.06);
+$modal-backdrop-bg: rgba(10, 10, 11, 0.85);
+$modal-backdrop-opacity: 1;
+$modal-box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+
+// ============================================
+// Offcanvas
+// ============================================
+$offcanvas-bg: rgba(18, 18, 20, 0.98);
+$offcanvas-border-color: rgba(255, 255, 255, 0.1);
+$offcanvas-border-width: 1px;
+
+// ============================================
+// Badges
+// ============================================
+$badge-font-size: 0.75em;
+$badge-font-weight: 600;
+$badge-padding-y: 0.375em;
+$badge-padding-x: 0.75em;
+$badge-border-radius: $border-radius-pill;
+
+// ============================================
+// Alerts
+// ============================================
+$alert-bg-scale: 0;
+$alert-border-scale: 0;
+$alert-color-scale: 0;
+$alert-border-radius: $border-radius;
+
+// ============================================
+// Navbar
+// ============================================
+$navbar-bg: rgba(18, 18, 20, 0.95);
+$navbar-brand-color: #FFFFFF;
+$navbar-brand-font-size: 1.25rem;
+$navbar-brand-font-weight: 700;
+
+// ============================================
+// Spacing
+// ============================================
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,
+  2: $spacer * 0.5,
+  3: $spacer,
+  4: $spacer * 1.5,
+  5: $spacer * 3,
+  6: $spacer * 4,
+  7: $spacer * 5
+);
+
+// ============================================
+// Transitions
+// ============================================
+$transition-base: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-fade: opacity 0.15s linear;
+$transition-collapse: height 0.35s ease;
+
+// ============================================
+// Import Bootstrap
+// ============================================
+@import "bootstrap/scss/bootstrap";
+
+// ============================================
+// Dark Theme Extensions
+// ============================================
+[data-bs-theme="dark"] {
+  --bs-body-bg: #0A0A0B;
+  --bs-body-color: #FFFFFF;
+  --bs-border-color: rgba(255, 255, 255, 0.06);
+  --bs-card-bg: rgba(26, 26, 30, 0.8);
+  --bs-card-border-color: rgba(255, 255, 255, 0.06);
+}
+
+// ============================================
+// Bootstrap Overrides for Dark Theme
+// ============================================
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.form-control, .form-select {
+  background-clip: border-box;
+
+  &:disabled, &[readonly] {
+    background-color: rgba(255, 255, 255, 0.02);
+    opacity: 0.6;
+  }
+}
+
+.dropdown-menu {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.modal-content {
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+.offcanvas {
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+.text-primary {
+  color: #1DB954 !important;
+}
+
+.text-secondary {
+  color: #B3B3B3 !important;
+}
+
+.bg-primary {
+  background-color: #1DB954 !important;
+}
+
+.bg-dark {
+  background-color: #0A0A0B !important;
+}
+
+.border {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
