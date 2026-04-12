@@ -8,6 +8,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const defaultFrontendURL = "http://127.0.0.1:4200"
+
 // CallbackUseCase handles the business logic for OAuth callback
 type CallbackUseCase struct {
 	oauthConfig *oauth2.Config
@@ -39,7 +41,7 @@ func (uc *CallbackUseCase) Execute(ctx context.Context, code string) (string, er
 	// 2. Save token to cache
 	if uc.cacheRepo != nil {
 		if err := uc.cacheRepo.SetToken(ctx, token); err != nil {
-			// Log error but continue
+			return "", err
 		}
 	}
 
@@ -57,7 +59,7 @@ func (uc *CallbackUseCase) Execute(ctx context.Context, code string) (string, er
 	// 5. Get frontend URL
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
-		frontendURL = "http://127.0.0.1:4200"
+		frontendURL = defaultFrontendURL
 	}
 
 	return frontendURL + "/callback", nil
