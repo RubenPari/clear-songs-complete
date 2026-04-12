@@ -1,20 +1,15 @@
-/**
- * Main Layout Component
- * 
- * @component
- * @selector app-main-layout
- * @standalone true
- * @author Clear Songs Development Team
- */
-import { Component, Renderer2, signal, inject, PLATFORM_ID, effect, untracked, TemplateRef } from '@angular/core';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { NgbOffcanvas, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Component, DestroyRef, effect, inject, PLATFORM_ID, Renderer2, signal, TemplateRef, untracked } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NgbModule, NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { EMPTY, fromEvent } from 'rxjs';
+import { catchError, finalize, take } from 'rxjs/operators';
 
 import { AuthService } from '../../core/services/auth.service';
 import { LoadingService } from '../../core/services/loading.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -38,6 +33,8 @@ export class MainLayoutComponent {
   private platformId = inject(PLATFORM_ID);
   private offcanvasService = inject(NgbOffcanvas);
   private translate = inject(TranslateService);
+  private destroyRef = inject(DestroyRef);
+  private notificationService = inject(NotificationService);
   public authService = inject(AuthService);
   public loadingService = inject(LoadingService);
 
@@ -46,17 +43,14 @@ export class MainLayoutComponent {
   currentLang = signal('en');
 
   constructor() {
-    // Initialize translate
     this.translate.addLangs(['en', 'it']);
 
     if (isPlatformBrowser(this.platformId)) {
-      // Setup handset detection
       this.isHandset.set(window.innerWidth < 768);
-      window.addEventListener('resize', () => {
-        this.isHandset.set(window.innerWidth < 768);
-      });
+      fromEvent(window, 'resize')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.isHandset.set(window.innerWidth < 768));
 
-      // Load theme preference
       const savedTheme = localStorage.getItem(this.THEME_KEY);
       if (savedTheme) {
         this.isDarkTheme.set(savedTheme === 'dark');
@@ -65,7 +59,6 @@ export class MainLayoutComponent {
         this.isDarkTheme.set(prefersDark);
       }
 
-      // Load language preference
       const savedLang = localStorage.getItem(this.LANG_KEY);
       if (savedLang && ['en', 'it'].includes(savedLang)) {
         this.currentLang.set(savedLang);
@@ -75,7 +68,6 @@ export class MainLayoutComponent {
       }
     }
 
-    // Effect for applying theme
     effect(() => {
       const isDark = this.isDarkTheme();
       if (isDark) {
@@ -106,7 +98,17 @@ export class MainLayoutComponent {
   }
 
   logout(): void {
-    this.authService.logout().subscribe();
+    this.loadingService.show();
+    this.authService.logout()
+      .pipe(
+        take(1),
+        catchError(() => {
+          this.notificationService.error('Unable to log out. Please try again.');
+          return EMPTY;
+        }),
+        finalize(() => this.loadingService.hide())
+      )
+      .subscribe();
   }
 
   openSidebar(content: TemplateRef<unknown>): void {
