@@ -1,68 +1,103 @@
 package middleware
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"log"
 	"strings"
+
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/gin-gonic/gin"
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
-// CacheInvalidationMiddleware automatically invalidates cache based on the endpoint called
+// CacheInvalidationMiddleware invalidates cache after successful write operations.
 func CacheInvalidationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Execute the request first
 		c.Next()
 
-		// Only invalidate cache if the request was successful
-		if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
-			// Get CacheRepository from context (set by SessionMiddleware)
-			repo, exists := c.Get("cacheRepository")
-			if !exists {
-				return
-			}
+		if !isWriteMethod(c.Request.Method) {
+			return
+		}
 
-			cacheRepo, ok := repo.(shared.CacheRepository)
-			if !ok || cacheRepo == nil {
-				return
-			}
+		if status := c.Writer.Status(); status < 200 || status >= 300 {
+			return
+		}
 
-			path := c.Request.URL.Path
-			method := c.Request.Method
+		cacheRepo, ok := cacheRepositoryFromContext(c)
+		if !ok {
+			return
+		}
 
-			// Only invalidate on modification operations (DELETE, POST, PUT, PATCH)
-			if method == "DELETE" || method == "POST" || method == "PUT" || method == "PATCH" {
-				invalidateBasedOnEndpoint(c, cacheRepo, path)
-			}
+		if err := invalidateByRequest(c, cacheRepo); err != nil {
+			log.Printf("warning: cache invalidation failed for %s %s: %v", c.Request.Method, c.Request.URL.Path, err)
 		}
 	}
 }
 
-func invalidateBasedOnEndpoint(c *gin.Context, cacheRepo shared.CacheRepository, path string) {
+func cacheRepositoryFromContext(c *gin.Context) (shared.CacheRepository, bool) {
+	repo, exists := c.Get("cacheRepository")
+	if !exists {
+		return nil, false
+	}
+
+	cacheRepo, ok := repo.(shared.CacheRepository)
+	if !ok || cacheRepo == nil {
+		return nil, false
+	}
+
+	return cacheRepo, true
+}
+
+func isWriteMethod(method string) bool {
+	switch method {
+	case "DELETE", "POST", "PUT", "PATCH":
+		return true
+	default:
+		return false
+	}
+}
+
+func invalidateByRequest(c *gin.Context, cacheRepo shared.CacheRepository) error {
 	ctx := c.Request.Context()
+	path := c.Request.URL.Path
 
 	switch {
 	case strings.HasPrefix(path, "/track/"):
-		// Any track operation affects user data
-		_ = cacheRepo.InvalidateUserTracks(ctx)
-
+		if err := cacheRepo.InvalidateUserTracks(ctx); err != nil {
+			return fmt.Errorf("invalidate user tracks: %w", err)
+		}
+		return nil
 	case strings.HasPrefix(path, "/playlist/"):
-		// Playlist operations
-		if playlistID := c.Query("id"); playlistID != "" {
-			_ = cacheRepo.InvalidatePlaylistTracks(ctx, spotifyAPI.ID(playlistID))
-		}
-
-		// If it's a playlist operation that also affects user library
-		if strings.Contains(path, "all") || strings.Contains(path, "library") {
-			_ = cacheRepo.InvalidateUserTracks(ctx)
-		}
-
+		return invalidatePlaylistCaches(ctx, c, cacheRepo, path)
 	case strings.HasPrefix(path, "/album/"):
-		// Album operations usually affect user library
-		_ = cacheRepo.InvalidateUserTracks(ctx)
-
+		if err := cacheRepo.InvalidateUserTracks(ctx); err != nil {
+			return fmt.Errorf("invalidate user tracks: %w", err)
+		}
+		return nil
 	default:
-		// For any other modification operation, do a full reset as a safety measure
-		// Note: CacheRepository doesn't have a Reset method, so we invalidate user tracks at minimum
-		_ = cacheRepo.InvalidateUserTracks(ctx)
+		if err := cacheRepo.InvalidateUserTracks(ctx); err != nil {
+			return fmt.Errorf("invalidate fallback user tracks: %w", err)
+		}
+		return nil
 	}
+}
+
+func invalidatePlaylistCaches(ctx context.Context, c *gin.Context, cacheRepo shared.CacheRepository, path string) error {
+	var errs []error
+
+	if playlistID := c.Query("id"); playlistID != "" {
+		if err := cacheRepo.InvalidatePlaylistTracks(ctx, spotifyAPI.ID(playlistID)); err != nil {
+			errs = append(errs, fmt.Errorf("invalidate playlist tracks: %w", err))
+		}
+	}
+
+	if strings.Contains(path, "library") {
+		if err := cacheRepo.InvalidateUserTracks(ctx); err != nil {
+			errs = append(errs, fmt.Errorf("invalidate user tracks: %w", err))
+		}
+	}
+
+	return errors.Join(errs...)
 }
