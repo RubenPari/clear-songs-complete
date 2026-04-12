@@ -4,68 +4,85 @@ import (
 	"context"
 	"errors"
 	"log"
+	"sync"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 )
 
-// SpotifyRepositoryImpl implements the SpotifyRepository interface
+// SpotifyRepositoryImpl implements the SpotifyRepository interface.
 type SpotifyRepositoryImpl struct {
-	clientID      string
-	clientSecret  string
-	redirectURI   string
 	authenticator spotify.Authenticator
-	token         *oauth2.Token
+	mu            sync.RWMutex
 	client        *spotify.Client
 }
 
-// NewSpotifyRepository creates a new Spotify repository implementation
+// NewSpotifyRepository creates a new Spotify repository implementation.
 func NewSpotifyRepository(clientID, clientSecret, redirectURI string, scopes []string) *SpotifyRepositoryImpl {
 	auth := spotify.NewAuthenticator(redirectURI, scopes...)
 	auth.SetAuthInfo(clientID, clientSecret)
 
 	return &SpotifyRepositoryImpl{
-		clientID:      clientID,
-		clientSecret:  clientSecret,
-		redirectURI:   redirectURI,
 		authenticator: auth,
 	}
 }
 
-// SetAccessToken sets the OAuth token and creates a new client
+// SetAccessToken sets the OAuth token and creates a new client.
 func (r *SpotifyRepositoryImpl) SetAccessToken(token interface{}) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if token == nil {
+		r.client = nil
+		return nil
+	}
+
 	oauthToken, ok := token.(*oauth2.Token)
 	if !ok {
 		return errors.New("invalid token type")
 	}
 
-	r.token = oauthToken
 	client := r.authenticator.NewClient(oauthToken)
 	r.client = &client
 	return nil
 }
 
-// GetClient returns the Spotify client (for backward compatibility)
+// GetClient returns the Spotify client (for backward compatibility).
 func (r *SpotifyRepositoryImpl) GetClient() *spotify.Client {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	return r.client
 }
 
-// GetCurrentUser retrieves the current authenticated user
-func (r *SpotifyRepositoryImpl) GetCurrentUser(ctx context.Context) (*spotify.PrivateUser, error) {
+func (r *SpotifyRepositoryImpl) currentClient() (*spotify.Client, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	if r.client == nil {
 		return nil, errors.New("spotify client not initialized")
 	}
-	return r.client.CurrentUser()
+
+	return r.client, nil
 }
 
-// GetUserTracks retrieves tracks saved by the user with pagination
+// GetCurrentUser retrieves the current authenticated user.
+func (r *SpotifyRepositoryImpl) GetCurrentUser(ctx context.Context) (*spotify.PrivateUser, error) {
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
+	}
+	return client.CurrentUser()
+}
+
+// GetUserTracks retrieves tracks saved by the user with pagination.
 func (r *SpotifyRepositoryImpl) GetUserTracks(ctx context.Context, limit, offset int) ([]spotify.SavedTrack, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
 
-	page, err := r.client.CurrentUsersTracksOpt(&spotify.Options{
+	page, err := client.CurrentUsersTracksOpt(&spotify.Options{
 		Limit:  &limit,
 		Offset: &offset,
 	})
@@ -76,7 +93,7 @@ func (r *SpotifyRepositoryImpl) GetUserTracks(ctx context.Context, limit, offset
 	return page.Tracks, nil
 }
 
-// GetAllUserTracks retrieves all user tracks with automatic pagination
+// GetAllUserTracks retrieves all user tracks with automatic pagination.
 func (r *SpotifyRepositoryImpl) GetAllUserTracks(ctx context.Context) ([]spotify.SavedTrack, error) {
 	var allTracks []spotify.SavedTrack
 	limit := 50
@@ -100,7 +117,7 @@ func (r *SpotifyRepositoryImpl) GetAllUserTracks(ctx context.Context) ([]spotify
 	return allTracks, nil
 }
 
-// GetTracksByArtist filters tracks by artist ID
+// GetTracksByArtist filters tracks by artist ID.
 func (r *SpotifyRepositoryImpl) GetTracksByArtist(ctx context.Context, artistID spotify.ID, tracks []spotify.SavedTrack) ([]spotify.SavedTrack, error) {
 	var filteredTracks []spotify.SavedTrack
 
@@ -113,7 +130,7 @@ func (r *SpotifyRepositoryImpl) GetTracksByArtist(ctx context.Context, artistID 
 	return filteredTracks, nil
 }
 
-// GetTrackIDsByArtist returns only track IDs for an artist
+// GetTrackIDsByArtist returns only track IDs for an artist.
 func (r *SpotifyRepositoryImpl) GetTrackIDsByArtist(ctx context.Context, artistID spotify.ID, tracks []spotify.SavedTrack) ([]spotify.ID, error) {
 	var trackIDs []spotify.ID
 
@@ -126,10 +143,11 @@ func (r *SpotifyRepositoryImpl) GetTrackIDsByArtist(ctx context.Context, artistI
 	return trackIDs, nil
 }
 
-// DeleteTracksFromLibrary removes tracks from user's library
+// DeleteTracksFromLibrary removes tracks from user's library.
 func (r *SpotifyRepositoryImpl) DeleteTracksFromLibrary(ctx context.Context, trackIDs []spotify.ID) error {
-	if r.client == nil {
-		return errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return err
 	}
 
 	limit := 50
@@ -142,7 +160,7 @@ func (r *SpotifyRepositoryImpl) DeleteTracksFromLibrary(ctx context.Context, tra
 		}
 
 		batch := trackIDs[offset:end]
-		if err := r.client.RemoveTracksFromLibrary(batch...); err != nil {
+		if err := client.RemoveTracksFromLibrary(batch...); err != nil {
 			return err
 		}
 
@@ -153,21 +171,23 @@ func (r *SpotifyRepositoryImpl) DeleteTracksFromLibrary(ctx context.Context, tra
 	return nil
 }
 
-// GetPlaylist retrieves a playlist by ID
+// GetPlaylist retrieves a playlist by ID.
 func (r *SpotifyRepositoryImpl) GetPlaylist(ctx context.Context, playlistID spotify.ID) (*spotify.FullPlaylist, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
-	return r.client.GetPlaylist(playlistID)
+	return client.GetPlaylist(playlistID)
 }
 
-// GetPlaylistTracks retrieves tracks from a playlist with pagination
+// GetPlaylistTracks retrieves tracks from a playlist with pagination.
 func (r *SpotifyRepositoryImpl) GetPlaylistTracks(ctx context.Context, playlistID spotify.ID, limit, offset int) ([]spotify.PlaylistTrack, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
 
-	page, err := r.client.GetPlaylistTracksOpt(playlistID, &spotify.Options{
+	page, err := client.GetPlaylistTracksOpt(playlistID, &spotify.Options{
 		Offset: &offset,
 		Limit:  &limit,
 	}, "")
@@ -178,7 +198,7 @@ func (r *SpotifyRepositoryImpl) GetPlaylistTracks(ctx context.Context, playlistI
 	return page.Tracks, nil
 }
 
-// GetAllPlaylistTracks retrieves all tracks from a playlist with automatic pagination
+// GetAllPlaylistTracks retrieves all tracks from a playlist with automatic pagination.
 func (r *SpotifyRepositoryImpl) GetAllPlaylistTracks(ctx context.Context, playlistID spotify.ID) ([]spotify.PlaylistTrack, error) {
 	limit := 100
 	offset := 0
@@ -202,10 +222,11 @@ func (r *SpotifyRepositoryImpl) GetAllPlaylistTracks(ctx context.Context, playli
 	return allTracks, nil
 }
 
-// DeletePlaylistTracks removes tracks from a playlist
+// DeletePlaylistTracks removes tracks from a playlist.
 func (r *SpotifyRepositoryImpl) DeletePlaylistTracks(ctx context.Context, playlistID spotify.ID, trackIDs []spotify.ID) error {
-	if r.client == nil {
-		return errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return err
 	}
 
 	limit := 100
@@ -218,7 +239,7 @@ func (r *SpotifyRepositoryImpl) DeletePlaylistTracks(ctx context.Context, playli
 		}
 
 		batch := trackIDs[offset:end]
-		if _, err := r.client.RemoveTracksFromPlaylist(playlistID, batch...); err != nil {
+		if _, err := client.RemoveTracksFromPlaylist(playlistID, batch...); err != nil {
 			return err
 		}
 
@@ -228,13 +249,14 @@ func (r *SpotifyRepositoryImpl) DeletePlaylistTracks(ctx context.Context, playli
 	return nil
 }
 
-// GetUserPlaylists retrieves playlists owned or followed by the user with pagination
+// GetUserPlaylists retrieves playlists owned or followed by the user with pagination.
 func (r *SpotifyRepositoryImpl) GetUserPlaylists(ctx context.Context, limit, offset int) ([]spotify.SimplePlaylist, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
 
-	page, err := r.client.CurrentUsersPlaylistsOpt(&spotify.Options{
+	page, err := client.CurrentUsersPlaylistsOpt(&spotify.Options{
 		Limit:  &limit,
 		Offset: &offset,
 	})
@@ -245,7 +267,7 @@ func (r *SpotifyRepositoryImpl) GetUserPlaylists(ctx context.Context, limit, off
 	return page.Playlists, nil
 }
 
-// GetAllUserPlaylists retrieves all user playlists with automatic pagination
+// GetAllUserPlaylists retrieves all user playlists with automatic pagination.
 func (r *SpotifyRepositoryImpl) GetAllUserPlaylists(ctx context.Context) ([]spotify.SimplePlaylist, error) {
 	var allPlaylists []spotify.SimplePlaylist
 	limit := 50
@@ -268,18 +290,20 @@ func (r *SpotifyRepositoryImpl) GetAllUserPlaylists(ctx context.Context) ([]spot
 	return allPlaylists, nil
 }
 
-// GetArtist retrieves artist information
+// GetArtist retrieves artist information.
 func (r *SpotifyRepositoryImpl) GetArtist(ctx context.Context, artistID spotify.ID) (*spotify.FullArtist, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
-	return r.client.GetArtist(artistID)
+	return client.GetArtist(artistID)
 }
 
-// GetArtists retrieves multiple artists in batch (up to 50 per Spotify API call)
+// GetArtists retrieves multiple artists in batch (up to 50 per Spotify API call).
 func (r *SpotifyRepositoryImpl) GetArtists(ctx context.Context, artistIDs []spotify.ID) ([]*spotify.FullArtist, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
 
 	var allArtists []*spotify.FullArtist
@@ -291,7 +315,7 @@ func (r *SpotifyRepositoryImpl) GetArtists(ctx context.Context, artistIDs []spot
 			end = len(artistIDs)
 		}
 
-		batch, err := r.client.GetArtists(artistIDs[i:end]...)
+		batch, err := client.GetArtists(artistIDs[i:end]...)
 		if err != nil {
 			log.Printf("Error fetching artists batch [%d:%d]: %v", i, end, err)
 			return nil, err
@@ -303,13 +327,14 @@ func (r *SpotifyRepositoryImpl) GetArtists(ctx context.Context, artistIDs []spot
 	return allArtists, nil
 }
 
-// GetTrack retrieves track information
+// GetTrack retrieves track information.
 func (r *SpotifyRepositoryImpl) GetTrack(ctx context.Context, trackID spotify.ID) (*spotify.FullTrack, error) {
-	if r.client == nil {
-		return nil, errors.New("spotify client not initialized")
+	client, err := r.currentClient()
+	if err != nil {
+		return nil, err
 	}
-	return r.client.GetTrack(trackID)
+	return client.GetTrack(trackID)
 }
 
-// Ensure SpotifyRepositoryImpl implements SpotifyRepository interface
+// Ensure SpotifyRepositoryImpl implements SpotifyRepository interface.
 var _ shared.SpotifyRepository = (*SpotifyRepositoryImpl)(nil)
