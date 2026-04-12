@@ -1,0 +1,70 @@
+services:
+  api:
+    build:
+      context: ./clear-songs
+      dockerfile: Dockerfile
+    container_name: clear-songs-api
+    environment:
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI:-http://127.0.0.1:3000/api/auth/callback}
+      FRONTEND_URL: ${FRONTEND_URL:-http://127.0.0.1:4200}
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: clear_songs
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./clear-songs-front
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${API_URL:-http://127.0.0.1:3000}
+        SPOTIFY_CLIENT_ID: ${CLIENT_ID}
+        SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:4200/callback}
+    container_name: clear-songs-front
+    ports:
+      - "4200:8080"
+    depends_on:
+      - api
+
+  postgres:
+    image: postgres:16
+    container_name: clear-songs-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: clear_songs
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clear_songs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: clear-songs-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+
+volumes:
+  pgdata:
