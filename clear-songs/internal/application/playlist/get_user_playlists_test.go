@@ -10,10 +10,12 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
+// TestGetUserPlaylistsUseCase_Execute tests the Execute method of GetUserPlaylistsUseCase
+// It verifies that the method correctly handles both cache hits and misses
 func TestGetUserPlaylistsUseCase_Execute(t *testing.T) {
 	mockSpotifyRepo := new(mocks.MockSpotifyRepository)
 	mockCacheRepo := new(mocks.MockCacheRepository)
-	
+
 	useCase := NewGetUserPlaylistsUseCase(mockSpotifyRepo, mockCacheRepo)
 	ctx := context.Background()
 
@@ -21,9 +23,9 @@ func TestGetUserPlaylistsUseCase_Execute(t *testing.T) {
 		playlists := []spotifyAPI.SimplePlaylist{{Name: "Playlist 1"}}
 
 		// Match any context and the specific key
-		mockCacheRepo.On("Get", mock.Anything, "user_playlists", mock.Anything).Return(false, nil)
+		mockCacheRepo.On("Get", mock.Anything, "userPlaylists", mock.Anything).Return(false, nil)
 		mockSpotifyRepo.On("GetAllUserPlaylists", mock.Anything).Return(playlists, nil)
-		mockCacheRepo.On("Set", mock.Anything, "user_playlists", playlists, mock.Anything).Return(nil)
+		mockCacheRepo.On("Set", mock.Anything, "userPlaylists", playlists, mock.Anything).Return(nil)
 
 		// Execute
 		result, err := useCase.Execute(ctx)
