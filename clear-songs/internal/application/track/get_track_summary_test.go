@@ -10,6 +10,8 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
+// TestGetTrackSummaryUseCase_Execute tests the Execute method of GetTrackSummaryUseCase
+// It verifies that the method correctly handles both cache hits and misses
 func TestGetTrackSummaryUseCase_Execute(t *testing.T) {
 	// Setup mocks
 	mockSpotifyRepo := new(mocks.MockSpotifyRepository)

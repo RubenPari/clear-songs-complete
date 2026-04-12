@@ -10,10 +10,12 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
+// TestDeleteTracksByArtistUseCase_Execute tests the Execute method of DeleteTracksByArtistUseCase
+// It verifies that the method correctly handles both cache hits and misses
 func TestDeleteTracksByArtistUseCase_Execute(t *testing.T) {
 	mockSpotifyRepo := new(mocks.MockSpotifyRepository)
 	mockCacheRepo := new(mocks.MockCacheRepository)
-	
+
 	useCase := NewDeleteTracksByArtistUseCase(mockSpotifyRepo, mockCacheRepo)
 	ctx := context.Background()
 	artistID := spotifyAPI.ID("artist_1")
@@ -23,7 +25,7 @@ func TestDeleteTracksByArtistUseCase_Execute(t *testing.T) {
 			{
 				FullTrack: spotifyAPI.FullTrack{
 					SimpleTrack: spotifyAPI.SimpleTrack{
-						ID: "track_1",
+						ID:      "track_1",
 						Artists: []spotifyAPI.SimpleArtist{{ID: "artist_1"}},
 					},
 				},
@@ -43,7 +45,7 @@ func TestDeleteTracksByArtistUseCase_Execute(t *testing.T) {
 	t.Run("Error - Spotify API failure should return error", func(t *testing.T) {
 		tracks := []spotifyAPI.SavedTrack{{}}
 		trackIDs := []spotifyAPI.ID{"track_id"}
-		
+
 		mockCacheRepo.ExpectedCalls = nil
 		mockSpotifyRepo.ExpectedCalls = nil
 
