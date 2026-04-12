@@ -2,7 +2,6 @@ package track
 
 import (
 	"context"
-	"time"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	spotifyAPI "github.com/zmb3/spotify"
@@ -17,7 +16,7 @@ type DeleteTracksByArtistUseCase struct {
 // NewDeleteTracksByArtistUseCase creates a new DeleteTracksByArtistUseCase
 func NewDeleteTracksByArtistUseCase(
 	spotifyRepo shared.SpotifyRepository,
-	cacheRepo   shared.CacheRepository,
+	cacheRepo shared.CacheRepository,
 ) *DeleteTracksByArtistUseCase {
 	return &DeleteTracksByArtistUseCase{
 		spotifyRepo: spotifyRepo,
@@ -56,26 +55,7 @@ func (uc *DeleteTracksByArtistUseCase) Execute(ctx context.Context, artistID spo
 	return nil
 }
 
-// getUserTracks retrieves tracks from cache or API
+// getUserTracks retrieves tracks from cache or API.
 func (uc *DeleteTracksByArtistUseCase) getUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
-	// Try cache first (if available)
-	if uc.cacheRepo != nil {
-		cached, err := uc.cacheRepo.GetUserTracks(ctx)
-		if err == nil && cached != nil && len(cached) > 0 {
-			return cached, nil
-		}
-	}
-
-	// Fetch from API
-	tracks, err := uc.spotifyRepo.GetAllUserTracks(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Cache for future use (if cache is available)
-	if uc.cacheRepo != nil {
-		_ = uc.cacheRepo.SetUserTracks(ctx, tracks, 5*time.Minute)
-	}
-
-	return tracks, nil
+	return getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 }

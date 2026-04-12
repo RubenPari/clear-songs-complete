@@ -5,7 +5,6 @@ import (
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	spotifyAPI "github.com/zmb3/spotify"
-	"time"
 )
 
 // GetTracksByArtistUseCase handles the business logic for getting tracks by artist
@@ -42,26 +41,7 @@ func (uc *GetTracksByArtistUseCase) Execute(ctx context.Context, artistID spotif
 	return filteredTracks, nil
 }
 
-// getUserTracks retrieves tracks from cache or API
+// getUserTracks retrieves tracks from cache or API.
 func (uc *GetTracksByArtistUseCase) getUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
-	// Try cache first (if available)
-	if uc.cacheRepo != nil {
-		cached, err := uc.cacheRepo.GetUserTracks(ctx)
-		if err == nil && cached != nil && len(cached) > 0 {
-			return cached, nil
-		}
-	}
-
-	// Fetch from API
-	tracks, err := uc.spotifyRepo.GetAllUserTracks(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Cache for future use (if cache is available)
-	if uc.cacheRepo != nil {
-		_ = uc.cacheRepo.SetUserTracks(ctx, tracks, 5*time.Minute)
-	}
-
-	return tracks, nil
+	return getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 }
