@@ -3,6 +3,7 @@ package track
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
@@ -22,7 +23,11 @@ func (uc *GetTrackSummaryUseCase) getCachedSummary(ctx context.Context, cacheKey
 	}
 
 	var cached []domainTrack.ArtistSummary
-	found, _ := uc.cacheRepo.Get(ctx, cacheKey, &cached)
+	found, err := uc.cacheRepo.Get(ctx, cacheKey, &cached)
+	if err != nil {
+		log.Printf("warning: failed to read summary cache for key %s: %v", cacheKey, err)
+		return nil, false
+	}
 	if !found {
 		return nil, false
 	}
@@ -35,5 +40,7 @@ func (uc *GetTrackSummaryUseCase) cacheSummary(ctx context.Context, cacheKey str
 		return
 	}
 
-	_ = uc.cacheRepo.Set(ctx, cacheKey, summary, 5*time.Minute)
+	if err := uc.cacheRepo.Set(ctx, cacheKey, summary, 5*time.Minute); err != nil {
+		log.Printf("warning: failed to write summary cache for key %s: %v", cacheKey, err)
+	}
 }

@@ -2,6 +2,8 @@ package track
 
 import (
 	"context"
+	"fmt"
+	"log"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	spotifyAPI "github.com/zmb3/spotify"
@@ -32,17 +34,19 @@ func (uc *DeleteTrackUseCase) Execute(ctx context.Context, trackID spotifyAPI.ID
 	// 1. Get track details for backup
 	track, err := uc.spotifyRepo.GetTrack(ctx, trackID)
 	if err != nil {
-		return err
+		return fmt.Errorf("get track details: %w", err)
 	}
 
 	// 2. Save backup to database
-	if err := uc.databaseRepo.SaveFullTracksBackup([]spotifyAPI.FullTrack{*track}); err != nil {
-		// Log error but continue
+	if uc.databaseRepo != nil {
+		if err := uc.databaseRepo.SaveFullTracksBackup([]spotifyAPI.FullTrack{*track}); err != nil {
+			log.Printf("warning: failed to backup track %s before deletion: %v", trackID, err)
+		}
 	}
 
 	// 3. Delete track from library
 	if err := uc.spotifyRepo.DeleteTracksFromLibrary(ctx, []spotifyAPI.ID{trackID}); err != nil {
-		return err
+		return fmt.Errorf("delete track from library: %w", err)
 	}
 
 	// 4. Invalidate cache
