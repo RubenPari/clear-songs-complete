@@ -1,40 +1,16 @@
-/**
- * Playlists Management Component
- * 
- * This component provides tools for managing Spotify playlists, allowing users to
- * perform bulk operations on playlists including clearing tracks and removing tracks
- * from both playlists and the user's library.
- * 
- * Features:
- * - Visual playlist selection from user's library
- * - Two operation modes:
- *   1. Clear playlist only (tracks remain in library)
- *   2. Clear playlist AND library (tracks removed from both, with backup)
- * - Operation history tracking
- * - Confirmation dialogs for destructive operations
- * - Loading states and error handling
- * 
- * @component
- * @selector app-playlists
- * @standalone true
- * @author Clear Songs Development Team
- */
-import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { finalize } from 'rxjs/operators';
+import { filter, finalize, switchMap } from 'rxjs/operators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { PlaylistService } from '../../core/services/playlist.service';
-import { NotificationService } from '../../core/services/notification.service';
-import { LoadingService } from '../../core/services/loading.service';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { UserPlaylist } from '../../core/models/artist.model';
 import { ApiError } from '../../core/models/api-response.model';
+import { UserPlaylist } from '../../core/models/artist.model';
+import { LoadingService } from '../../core/services/loading.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { PlaylistService } from '../../core/services/playlist.service';
+import { openConfirmDialog } from '../../core/utils/modal-helper';
 
-/**
- * Playlist Action Type
- */
 type PlaylistAction = 'playlist' | 'playlistAndLibrary';
 
 @Component({
@@ -102,47 +78,38 @@ export class PlaylistsComponent {
     }
 
     const copy = this.actionCopy()[action];
-    const modalRef = this.modalService.open(ConfirmDialogComponent, {
+
+    openConfirmDialog(this.modalService, {
+      title: copy.title,
+      message: `${copy.message}\n\n${this.translate.instant('PLAYLISTS.PLAYLIST_ID')}: ${playlistId}`,
+      confirmText: copy.confirmText,
+      cancelText: this.translate.instant('PLAYLISTS.ACTION_CANCEL'),
       size: 'md',
-      centered: true
-    });
-    modalRef.componentInstance.title = copy.title;
-    modalRef.componentInstance.message = `${copy.message}\n\n${this.translate.instant('PLAYLISTS.PLAYLIST_ID')}: ${playlistId}`;
-    modalRef.componentInstance.confirmText = copy.confirmText;
-    modalRef.componentInstance.cancelText = this.translate.instant('PLAYLISTS.ACTION_CANCEL');
+      centered: true,
+    })
+      .pipe(
+        filter((confirmed) => confirmed),
+        switchMap(() => {
+          this.loadingService.show();
+          const request$ =
+            action === 'playlist'
+              ? this.playlistService.deleteAllPlaylistTracks(playlistId)
+              : this.playlistService.deleteAllPlaylistAndUserTracks(playlistId);
 
-    modalRef.result.then(
-      (confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.loadingService.show();
-        const request$ =
-          action === 'playlist'
-            ? this.playlistService.deleteAllPlaylistTracks(playlistId)
-            : this.playlistService.deleteAllPlaylistAndUserTracks(playlistId);
-
-        request$
-          .pipe(
-            finalize(() => this.loadingService.hide())
-          )
-          .subscribe({
-            next: () => {
-              this.notificationService.success(copy.success);
-              this.lastOperation.set({ playlistId, action, timestamp: Date.now() });
-              this.selectedPlaylistId.set(null);
-            },
-            error: (error) => {
-              const rawError: ApiError | string | undefined = error?.error?.error;
-              const serverMessage = typeof rawError === 'string' ? rawError : rawError?.message;
-              this.notificationService.error(serverMessage || copy.error);
-            },
-          });
-      },
-      () => {
-        // Modal dismissed
-      }
-    );
+          return request$.pipe(finalize(() => this.loadingService.hide()));
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.notificationService.success(copy.success);
+          this.lastOperation.set({ playlistId, action, timestamp: Date.now() });
+          this.selectedPlaylistId.set(null);
+        },
+        error: (error) => {
+          const rawError: ApiError | string | undefined = error?.error?.error;
+          const serverMessage = typeof rawError === 'string' ? rawError : rawError?.message;
+          this.notificationService.error(serverMessage || copy.error);
+        },
+      });
   }
 }
