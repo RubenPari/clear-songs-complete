@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres/models"
 	"github.com/joho/godotenv"
 	spotifyAPI "github.com/zmb3/spotify"
 )
@@ -85,24 +84,4 @@ func LoadEnvVariables() {
 		log.Fatal("REDIRECT_URL or REDIRECT_URI not found in environment variables after loading .env file")
 	}
 	log.Printf("OAuth Redirect URL configured: %s", redirectURL)
-}
-
-// FilterSummaryByRange is kept here for now as it's purely logic, 
-// though it could be moved to application layer.
-func FilterSummaryByRange(tracks []models.ArtistSummary, min int, max int) []models.ArtistSummary {
-	var newTracks []models.ArtistSummary
-
-	for _, track := range tracks {
-		if min == 0 && max == 0 {
-			newTracks = append(newTracks, track)
-		} else if min == 0 && track.Count <= max {
-			newTracks = append(newTracks, track)
-		} else if max == 0 && track.Count >= min {
-			newTracks = append(newTracks, track)
-		} else if track.Count >= min && track.Count <= max {
-			newTracks = append(newTracks, track)
-		}
-	}
-
-	return newTracks
 }
