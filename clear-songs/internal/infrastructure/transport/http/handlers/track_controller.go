@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/RubenPari/clear-songs/internal/application/track"
+	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	"github.com/gin-gonic/gin"
 	spotifyAPI "github.com/zmb3/spotify"
@@ -10,6 +11,7 @@ import (
 // TrackController is the refactored track controller
 type TrackController struct {
 	BaseController
+	cacheRepo              shared.CacheRepository
 	getTrackSummaryUseCase *track.GetTrackSummaryUseCase
 	deleteTracksByArtistUC *track.DeleteTracksByArtistUseCase
 	deleteTracksByRangeUC  *track.DeleteTracksByRangeUseCase
@@ -19,6 +21,7 @@ type TrackController struct {
 
 // NewTrackController creates a new TrackController
 func NewTrackController(
+	cacheRepo shared.CacheRepository,
 	getTrackSummaryUseCase *track.GetTrackSummaryUseCase,
 	deleteTracksByArtistUC *track.DeleteTracksByArtistUseCase,
 	deleteTracksByRangeUC *track.DeleteTracksByRangeUseCase,
@@ -26,12 +29,28 @@ func NewTrackController(
 	deleteTrackUC *track.DeleteTrackUseCase,
 ) *TrackController {
 	return &TrackController{
+		cacheRepo:              cacheRepo,
 		getTrackSummaryUseCase: getTrackSummaryUseCase,
 		deleteTracksByArtistUC: deleteTracksByArtistUC,
 		deleteTracksByRangeUC:  deleteTracksByRangeUC,
 		deleteTrackUC:          deleteTrackUC,
 		getTracksByArtistUC:    getTracksByArtistUC,
 	}
+}
+
+// InvalidateLibraryCache handles POST /track/library-cache/invalidate — clears user tracks
+// and derived track-summary keys in Redis so the next GET /track/summary is recomputed.
+func (tc *TrackController) InvalidateLibraryCache(c *gin.Context) {
+	if tc.cacheRepo == nil {
+		tc.JSONSuccess(c, gin.H{"message": "No cache configured"})
+		return
+	}
+	ctx := c.Request.Context()
+	if err := tc.cacheRepo.InvalidateUserTracks(ctx); err != nil {
+		tc.JSONInternalError(c, "Failed to invalidate library cache")
+		return
+	}
+	tc.JSONSuccess(c, gin.H{"message": "Library cache invalidated"})
 }
 
 // GetTrackSummary handles GET /track/summary
@@ -42,8 +61,14 @@ func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 		return
 	}
 
+	min, max, errMsg := track.ValidateRangeQuery(&req)
+	if errMsg != "" {
+		tc.JSONValidationError(c, errMsg)
+		return
+	}
+
 	ctx := c.Request.Context()
-	result, err := tc.getTrackSummaryUseCase.Execute(ctx, req.Min, req.Max, req.Genre)
+	result, err := tc.getTrackSummaryUseCase.Execute(ctx, min, max, req.Genre)
 	if err != nil {
 		tc.HandleDomainError(c, err)
 		return
@@ -163,14 +188,20 @@ func (tc *TrackController) DeleteTrackByRange(c *gin.Context) {
 	}
 
 	// At least one parameter must be provided for a destructive action
-	if req.Min == 0 && req.Max == 0 && c.Query("min") == "" && c.Query("max") == "" {
+	if c.Query("min") == "" && c.Query("max") == "" {
 		tc.JSONValidationError(c, "At least one of min or max must be provided")
+		return
+	}
+
+	min, max, errMsg := track.ValidateRangeQuery(&req)
+	if errMsg != "" {
+		tc.JSONValidationError(c, errMsg)
 		return
 	}
 
 	// Execute use case
 	ctx := c.Request.Context()
-	if err := tc.deleteTracksByRangeUC.Execute(ctx, req.Min, req.Max); err != nil {
+	if err := tc.deleteTracksByRangeUC.Execute(ctx, min, max); err != nil {
 		tc.HandleDomainError(c, err)
 		return
 	}

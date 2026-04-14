@@ -44,6 +44,7 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	 * Track Management Routes Group
 	 */
 	trackController := handlers.NewTrackController(
+		container.CacheRepo,
 		container.GetTrackSummaryUseCase,
 		container.DeleteTracksByArtistUC,
 		container.DeleteTracksByRangeUC,
@@ -53,6 +54,9 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 
 	track := server.Group("/track")
 	{
+		track.POST("/library-cache/invalidate",
+			middleware.SpotifyAuthMiddleware(),
+			trackController.InvalidateLibraryCache)
 		track.GET("/summary",
 			middleware.SpotifyAuthMiddleware(),
 			trackController.GetTrackSummary)
