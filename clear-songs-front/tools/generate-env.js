@@ -29,9 +29,9 @@ if (fs.existsSync(envPath)) {
  * Standard variables mapping with defaults
  */
 const config = {
-  apiUrl: process.env.API_URL || 'http://127.0.0.1:3000',
+  apiUrl: process.env.API_URL !== undefined ? process.env.API_URL : 'http://127.0.0.1:3000',
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID || 'YOUR_SPOTIFY_CLIENT_ID',
-  spotifyRedirectUri: process.env.SPOTIFY_REDIRECT_URI || 'http://127.0.0.1:4200/callback',
+  spotifyRedirectUri: process.env.SPOTIFY_REDIRECT_URI !== undefined ? process.env.SPOTIFY_REDIRECT_URI : 'http://127.0.0.1:4200/callback',
 };
 
 /**
