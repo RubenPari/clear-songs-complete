@@ -172,9 +172,37 @@ func (r *RedisCacheRepository) SetUserTracks(ctx context.Context, tracks []spoti
 	return r.Set(ctx, "userTracks", tracks, ttl)
 }
 
-// InvalidateUserTracks removes user tracks from cache
+// InvalidateUserTracks removes cached user tracks and all derived track-summary entries
+// (keys prefixed with track_summary) so GET /track/summary cannot return stale aggregates.
 func (r *RedisCacheRepository) InvalidateUserTracks(ctx context.Context) error {
-	return r.Delete(ctx, "userTracks")
+	if err := r.Delete(ctx, "userTracks"); err != nil {
+		return err
+	}
+	return r.deleteKeysByPattern(ctx, "track_summary*")
+}
+
+// deleteKeysByPattern removes all keys matching a Redis glob pattern (non-blocking SCAN).
+func (r *RedisCacheRepository) deleteKeysByPattern(ctx context.Context, pattern string) error {
+	if r.client == nil {
+		return nil
+	}
+	var cursor uint64
+	for {
+		keys, next, err := r.client.Scan(ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			return err
+		}
+		if len(keys) > 0 {
+			if err := r.client.Del(ctx, keys...).Err(); err != nil {
+				return err
+			}
+		}
+		cursor = next
+		if cursor == 0 {
+			break
+		}
+	}
+	return nil
 }
 
 // GetPlaylistTracks retrieves cached playlist tracks
