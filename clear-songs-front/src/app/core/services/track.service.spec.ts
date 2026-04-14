@@ -48,7 +48,13 @@ describe('TrackService', () => {
       { id: '2', name: 'Artist 2', count: 5 }
     ];
 
-    const resource = TestBed.runInInjectionContext(() => service.getTrackSummaryResource());
+    const resource = TestBed.runInInjectionContext(() =>
+      service.createTrackSummaryResource({
+        min: () => undefined,
+        max: () => undefined,
+        genre: () => undefined,
+      })
+    );
     
     // Trigger the resource to make the request
     resource.value();

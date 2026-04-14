@@ -941,6 +941,7 @@
 
         .btn-clear-select {
           position: absolute;
+          z-index: 2;
           right: 8px;
           top: 50%;
           transform: translateY(-50%);
@@ -1001,6 +1002,93 @@
     background: var(--surface-subtle);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-subtle);
+
+    .range-filter-row {
+      display: flex;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 100px;
+
+      .input-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-control-modern {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 600;
+        background: var(--surface-subtle);
+        color: var(--text-primary);
+        transition: all var(--transition-base);
+
+        &:focus {
+          outline: none;
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 3px var(--color-primary-glow);
+          background: var(--surface-default);
+        }
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        -moz-appearance: textfield;
+      }
+    }
+
+    .input-separator {
+      display: flex;
+      align-items: center;
+      padding-bottom: 10px;
+
+      .separator-text {
+        font-size: 16px;
+        color: var(--text-tertiary);
+        font-weight: 600;
+      }
+    }
+
+    .btn-range-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      background: var(--gradient-primary);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #0a0a0a;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      white-space: nowrap;
+
+      &:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
   }
 }
 

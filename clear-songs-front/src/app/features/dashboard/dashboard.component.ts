@@ -10,7 +10,6 @@ import { LoadingService } from '../../core/services/loading.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { TrackService } from '../../core/services/track.service';
 import { modalResult$, openConfirmDialog } from '../../core/utils/modal-helper';
-import { RangeSliderComponent } from '../../shared/components/range-slider/range-slider.component';
 import { D3BarChartComponent } from '../../shared/components/d3-bar-chart/d3-bar-chart.component';
 import { SkeletonChartComponent, SkeletonStatComponent, SkeletonTableComponent } from '../../shared/components/skeleton/skeleton-components';
 import { ArtistTracksModalComponent } from '../tracks/artist-tracks-modal.component';
@@ -27,7 +26,6 @@ import { ArtistTracksModalComponent } from '../tracks/artist-tracks-modal.compon
     SkeletonStatComponent,
     SkeletonTableComponent,
     SkeletonChartComponent,
-    RangeSliderComponent,
     NgbModule,
     TranslateModule
   ]
@@ -44,48 +42,29 @@ export class DashboardComponent {
   selectedGenre = signal<string>('');
   minRange = signal<number>(0);
   maxRange = signal<number>(100);
+
+  rangeMinDraft = signal<number>(0);
+  rangeMaxDraft = signal<number>(100);
   
   currentPage = signal<number>(1);
   itemsPerPage = signal<number>(10);
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
-  private _trackSummaryResource = signal<ReturnType<typeof this.trackService.getTrackSummaryResource> | null>(null);
-  
-  get trackSummaryResource() {
-    return this._trackSummaryResource();
-  }
-  
-  private initResource(): void {
-    this._trackSummaryResource.set(
-      runInInjectionContext(this.injector, () =>
-        this.trackService.getTrackSummaryResource(
-          this.minRange() > 0 ? this.minRange() : undefined,
-          this.maxRange() < 100 ? this.maxRange() : undefined,
-          this.selectedGenre() || undefined
-        )
-      )
-    );
-  }
-  
+  /** Single resource; URL factory reads signals so requests refetch when filters change. */
+  private readonly trackSummaryResource = runInInjectionContext(this.injector, () =>
+    this.trackService.createTrackSummaryResource({
+      min: () => (this.minRange() > 0 ? this.minRange() : undefined),
+      max: () => (this.maxRange() < 100 ? this.maxRange() : undefined),
+      genre: () => (this.selectedGenre() || undefined),
+    })
+  );
+
   constructor() {
-    this.initResource();
-    
     effect(() => {
-      const genre = this.selectedGenre();
-      const min = this.minRange();
-      const max = this.maxRange();
-      
-      this._trackSummaryResource.set(
-        runInInjectionContext(this.injector, () =>
-          this.trackService.getTrackSummaryResource(
-            min > 0 ? min : undefined,
-            max < 100 ? max : undefined,
-            genre || undefined
-          )
-        )
-      );
-      
+      this.selectedGenre();
+      this.minRange();
+      this.maxRange();
       this.currentPage.set(1);
     });
     
@@ -96,8 +75,8 @@ export class DashboardComponent {
     });
     
     effect(() => {
-      const resource = this._trackSummaryResource();
-      if (resource?.isLoading()) {
+      const resource = this.trackSummaryResource;
+      if (resource.isLoading()) {
         this.loadingService.show();
       } else {
         this.loadingService.hide();
@@ -105,15 +84,15 @@ export class DashboardComponent {
     });
 
     effect(() => {
-      const resource = this._trackSummaryResource();
-      if (resource?.error()) {
+      const resource = this.trackSummaryResource;
+      if (resource.error()) {
         this.notificationService.error(this.translate.instant('DASHBOARD.LOAD_ERROR'));
       }
     });
   }
 
   private getResource() {
-    return this._trackSummaryResource()!;
+    return this.trackSummaryResource;
   }
 
   isLoading = computed(() => this.getResource()?.isLoading() ?? true);
@@ -190,7 +169,12 @@ export class DashboardComponent {
   });
 
   loadTrackSummary(): void {
-    this.getResource().reload();
+    this.trackService.invalidateLibraryCache().subscribe({
+      next: () => this.getResource().reload(),
+      error: () => {
+        this.notificationService.error(this.translate.instant('DASHBOARD.LOAD_ERROR'));
+      },
+    });
   }
 
   applyFilter(event?: Event): void {
@@ -200,27 +184,49 @@ export class DashboardComponent {
     }
   }
 
-  onGenreChange(event: Event): void {
-    const target = event?.target as HTMLSelectElement | null;
-    if (target) {
-      this.selectedGenre.set(target.value);
-    }
-  }
-
-  clearGenre(): void {
+  clearGenre(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
     this.selectedGenre.set('');
   }
 
-  onRangeChange(range: { min: number; max: number }): void {
-    this.minRange.set(range.min);
-    this.maxRange.set(range.max);
+  coerceRangeDraft(value: string | number): number {
+    const n = typeof value === 'number' ? value : parseInt(String(value), 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  applyRangeFilter(): void {
+    const step = 1;
+    const cap = this.maxTrackCount();
+    let minV = this.rangeMinDraft();
+    let maxV = this.rangeMaxDraft();
+
+    minV = Math.max(0, Math.min(minV, cap));
+    maxV = Math.max(0, Math.min(maxV, cap));
+
+    if (minV > maxV) {
+      const t = minV;
+      minV = maxV;
+      maxV = t;
+    }
+
+    minV = Math.max(0, Math.min(minV, maxV - step));
+    maxV = Math.min(cap, Math.max(maxV, minV + step));
+
+    this.rangeMinDraft.set(minV);
+    this.rangeMaxDraft.set(maxV);
+    this.minRange.set(minV);
+    this.maxRange.set(maxV);
   }
 
   resetFilters(): void {
     this.searchFilter.set('');
     this.selectedGenre.set('');
+    const cap = this.maxTrackCount();
     this.minRange.set(0);
-    this.maxRange.set(this.maxTrackCount());
+    this.maxRange.set(cap);
+    this.rangeMinDraft.set(0);
+    this.rangeMaxDraft.set(cap);
   }
 
   sortTable(column: string): void {

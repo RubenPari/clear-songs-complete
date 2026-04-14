@@ -8,6 +8,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateModule } from '@ngx-translate/core';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { ArtistSummary } from '../../core/models/artist.model';
+import { of } from 'rxjs';
 
 
 describe('DashboardComponent', () => {
@@ -15,23 +16,35 @@ describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let trackService: jasmine.SpyObj<TrackService>;
   let resourceValue: WritableSignal<ApiResponse<ArtistSummary[]>>;
+  let mockResource: {
+    value: WritableSignal<ApiResponse<ArtistSummary[]>>;
+    isLoading: ReturnType<typeof signal<boolean>>;
+    error: ReturnType<typeof signal<unknown>>;
+    status: ReturnType<typeof signal<number>>;
+    reload: jasmine.Spy;
+  };
 
   beforeEach(async () => {
-    const trackServiceSpy = jasmine.createSpyObj('TrackService', ['getTrackSummaryResource', 'deleteTracksByArtist']);
+    const trackServiceSpy = jasmine.createSpyObj('TrackService', [
+      'createTrackSummaryResource',
+      'deleteTracksByArtist',
+      'invalidateLibraryCache',
+    ]);
+    trackServiceSpy.invalidateLibraryCache.and.returnValue(of({ success: true }));
     const notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['success', 'error']);
     const loadingServiceSpy = jasmine.createSpyObj('LoadingService', ['show', 'hide']);
     const modalServiceSpy = jasmine.createSpyObj('NgbModal', ['open']);
 
     // Mock the resource API
     resourceValue = signal<ApiResponse<ArtistSummary[]>>({ success: true, data: [] });
-    const mockResource = {
+    mockResource = {
       value: resourceValue,
       isLoading: signal(false),
       error: signal(null),
       status: signal(3), // Resolved
-      reload: jasmine.createSpy('reload')
+      reload: jasmine.createSpy('reload'),
     };
-    trackServiceSpy.getTrackSummaryResource.and.returnValue(mockResource as never);
+    trackServiceSpy.createTrackSummaryResource.and.returnValue(mockResource as never);
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent, TranslateModule.forRoot()],
@@ -80,9 +93,9 @@ describe('DashboardComponent', () => {
     expect(component.filteredArtists()[0].name).toBe('Alice');
   });
 
-  it('should reload data when loadTrackSummary is called', () => {
+  it('should invalidate cache then reload data when loadTrackSummary is called', () => {
     component.loadTrackSummary();
-    const resource = trackService.getTrackSummaryResource();
-    expect(resource.reload).toHaveBeenCalled();
+    expect(trackService.invalidateLibraryCache).toHaveBeenCalled();
+    expect(mockResource.reload).toHaveBeenCalled();
   });
 });

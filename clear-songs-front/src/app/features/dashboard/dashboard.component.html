@@ -5,7 +5,7 @@
         <h1 class="page-title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
         <p class="page-subtitle">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
       </div>
-      <button class="btn btn-refresh" (click)="loadTrackSummary()">
+      <button type="button" class="btn btn-refresh" (click)="loadTrackSummary()">
         <i class="bi bi-arrow-clockwise"></i>
         <span>{{ 'DASHBOARD.REFRESH' | translate }}</span>
       </button>
@@ -108,10 +108,11 @@
                 <div class="genre-filter">
                   <div class="select-wrapper">
                     <i class="bi bi-music-note-list select-icon"></i>
-                    <select 
-                      class="form-select-modern" 
-                      [value]="selectedGenre()"
-                      (change)="onGenreChange($event)"
+                    <select
+                      class="form-select-modern"
+                      [ngModel]="selectedGenre()"
+                      (ngModelChange)="selectedGenre.set($event)"
+                      [ngModelOptions]="{standalone: true}"
                     >
                       <option value="">{{ 'DASHBOARD.ALL_GENRES' | translate }}</option>
                       @for (genre of availableGenres(); track genre) {
@@ -119,7 +120,11 @@
                       }
                     </select>
                     @if (selectedGenre()) {
-                      <button class="btn-clear-select" (click)="clearGenre()" type="button">
+                      <button
+                        type="button"
+                        class="btn-clear-select"
+                        (click)="clearGenre($event)"
+                      >
                         <i class="bi bi-x"></i>
                       </button>
                     }
@@ -132,14 +137,42 @@
               </div>
               
               <div class="range-filter">
-                <app-range-slider
-                  [min]="0"
-                  [max]="maxTrackCount()"
-                  [step]="1"
-                  [minValue]="minRange()"
-                  [maxValue]="maxRange()"
-                  (rangeChange)="onRangeChange($event)"
-                ></app-range-slider>
+                <div class="range-filter-row">
+                  <div class="input-group">
+                    <label for="range-min-input" class="input-label">{{ 'DASHBOARD.MIN' | translate }}</label>
+                    <input
+                      id="range-min-input"
+                      type="number"
+                      class="form-control-modern"
+                      [min]="0"
+                      [max]="maxTrackCount()"
+                      [step]="1"
+                      [ngModel]="rangeMinDraft()"
+                      (ngModelChange)="rangeMinDraft.set(coerceRangeDraft($event))"
+                      [ngModelOptions]="{standalone: true}"
+                    />
+                  </div>
+                  <div class="input-separator">
+                    <span class="separator-text">—</span>
+                  </div>
+                  <div class="input-group">
+                    <label for="range-max-input" class="input-label">{{ 'DASHBOARD.MAX' | translate }}</label>
+                    <input
+                      id="range-max-input"
+                      type="number"
+                      class="form-control-modern"
+                      [min]="0"
+                      [max]="maxTrackCount()"
+                      [step]="1"
+                      [ngModel]="rangeMaxDraft()"
+                      (ngModelChange)="rangeMaxDraft.set(coerceRangeDraft($event))"
+                      [ngModelOptions]="{standalone: true}"
+                    />
+                  </div>
+                  <button class="btn btn-range-submit" type="button" (click)="applyRangeFilter()">
+                    {{ 'DASHBOARD.RANGE_SUBMIT' | translate }}
+                  </button>
+                </div>
               </div>
             </div>
 

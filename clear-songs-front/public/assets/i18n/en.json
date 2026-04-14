@@ -28,6 +28,7 @@
     "ALL_GENRES": "All Genres",
     "MIN": "Min",
     "MAX": "Max",
+    "RANGE_SUBMIT": "Apply",
     "NO_ARTISTS_TITLE": "No artists found",
     "NO_ARTISTS_MSG": "No artists match your search criteria. Try adjusting your filters.",
     "COL_ARTIST": "Artist Name",

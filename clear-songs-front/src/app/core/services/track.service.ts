@@ -15,11 +15,24 @@ export class TrackService {
   private http = inject(HttpClient);
   private trackStore = inject(TrackStore);
 
-  getTrackSummaryResource(min?: number, max?: number, genre?: string) {
+  /**
+   * Track summary as a reactive httpResource. The request URL is recomputed whenever
+   * the callbacks read new signal values (must be invoked inside the inner function).
+   */
+  createTrackSummaryResource(deps: {
+    min: () => number | undefined;
+    max: () => number | undefined;
+    genre: () => string | undefined;
+  }) {
     return httpResource<ApiResponse<ArtistSummary[]>>(() => {
-      const params = buildRangeParams(min, max, genre);
+      const params = buildRangeParams(deps.min(), deps.max(), deps.genre());
       return `${this.apiUrl}/summary?${params.toString()}`;
     });
+  }
+
+  /** Clears Redis user-tracks + track-summary caches; call before reloading the dashboard summary. */
+  invalidateLibraryCache(): Observable<ApiResponse<unknown>> {
+    return this.http.post<ApiResponse<unknown>>(`${this.apiUrl}/library-cache/invalidate`, {});
   }
 
   deleteTracksByArtist(artistId: string): Observable<ApiResponse> {
