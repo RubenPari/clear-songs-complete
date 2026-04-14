@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
@@ -35,25 +36,25 @@ func (uc *CallbackUseCase) Execute(ctx context.Context, code string) (string, er
 	// 1. Exchange code for token
 	token, err := uc.oauthConfig.Exchange(ctx, code)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("oauth2 exchange: %w", err)
 	}
 
 	// 2. Save token to cache
 	if uc.cacheRepo != nil {
 		if err := uc.cacheRepo.SetToken(ctx, token); err != nil {
-			return "", err
+			return "", fmt.Errorf("cache set token: %w", err)
 		}
 	}
 
 	// 3. Set token in Spotify repository
 	if err := uc.spotifyRepo.SetAccessToken(token); err != nil {
-		return "", err
+		return "", fmt.Errorf("spotify set access token: %w", err)
 	}
 
 	// 4. Verify authentication by getting current user
 	_, err = uc.spotifyRepo.GetCurrentUser(ctx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("spotify get current user: %w", err)
 	}
 
 	// 5. Get frontend URL

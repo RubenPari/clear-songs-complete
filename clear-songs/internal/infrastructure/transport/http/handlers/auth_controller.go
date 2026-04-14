@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/application/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/oauth2"
 )
 
 // AuthController is the auth controller using dependency injection
@@ -36,7 +39,7 @@ func NewAuthController(
 // Login handles GET /auth/login
 func (ac *AuthController) Login(c *gin.Context) {
 	state := uuid.NewString()
-	c.SetCookie("oauth_state", state, 10*60, "/", "", false, true)
+	ac.setOAuthStateCookie(c, state)
 
 	url := ac.loginUC.Execute(state)
 	c.Redirect(http.StatusFound, url)
@@ -56,12 +59,21 @@ func (ac *AuthController) Callback(c *gin.Context) {
 			return
 		}
 	}
-	c.SetCookie("oauth_state", "", -1, "/", "", false, true)
+	ac.clearOAuthStateCookie(c)
 
 	ctx := c.Request.Context()
 	redirectURL, err := ac.callbackUC.Execute(ctx, code)
 	if err != nil {
-		log.Printf("ERROR: OAuth callback failed: %v", err)
+		var re *oauth2.RetrieveError
+		if errors.As(err, &re) {
+			log.Printf(
+				"ERROR: OAuth callback failed [oauth2_exchange] error_code=%q error_description=%q",
+				re.ErrorCode,
+				re.ErrorDescription,
+			)
+		} else {
+			log.Printf("ERROR: OAuth callback failed: %v", err)
+		}
 		ac.JSONInternalError(c, "Error authenticating user")
 		return
 	}
@@ -96,4 +108,21 @@ func (ac *AuthController) IsAuth(c *gin.Context) {
 			"profile_image": userInfo.ProfileImage,
 		},
 	})
+}
+
+func requestIsHTTPS(c *gin.Context) bool {
+	if c.Request.TLS != nil {
+		return true
+	}
+	return strings.EqualFold(c.Request.Header.Get("X-Forwarded-Proto"), "https")
+}
+
+func (ac *AuthController) setOAuthStateCookie(c *gin.Context, state string) {
+	secure := requestIsHTTPS(c)
+	c.SetCookie("oauth_state", state, 10*60, "/", "", secure, true)
+}
+
+func (ac *AuthController) clearOAuthStateCookie(c *gin.Context) {
+	secure := requestIsHTTPS(c)
+	c.SetCookie("oauth_state", "", -1, "/", "", secure, true)
 }

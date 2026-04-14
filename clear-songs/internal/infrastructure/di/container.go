@@ -3,6 +3,7 @@ package di
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -60,17 +61,12 @@ func NewContainer() (*Container, error) {
 	// Initialize Spotify repository
 	spotifyRepo := spotify.NewSpotifyRepository(oauthConfig.ClientID, oauthConfig.ClientSecret, oauthConfig.RedirectURL, constants.Scopes)
 
-	// Initialize cache repository (may fail if Redis is not available)
-	var cacheRepo shared.CacheRepository
+	// Redis is required: OAuth token and caching depend on it.
 	redisCache, err := redis.NewRedisCacheRepository()
 	if err != nil {
-		log.Printf("WARNING: Cache repository initialization failed: %v", err)
-		log.Println("WARNING: Application will continue without Redis caching")
-		// Use no-op cache implementation
-		cacheRepo = redis.NewNoOpCacheRepository()
-	} else {
-		cacheRepo = redisCache
+		return nil, fmt.Errorf("redis required: %w", err)
 	}
+	cacheRepo := redisCache
 
 	// Initialize database repository (may be nil if database not available)
 	databaseRepo := postgres.NewPostgresRepository(postgres.Db)
