@@ -9,12 +9,14 @@ import (
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
 )
 
+// buildTrackSummaryCacheKey must be unique per (min, max, genre). Genre-only filters
+// use min=0 max=0; they must not share the same key as the unfiltered summary or
+// clients always receive the cached full list.
 func buildTrackSummaryCacheKey(min, max int, genre string) string {
-	if min > 0 || max > 0 {
-		return fmt.Sprintf("track_summary_%d_%d_%s", min, max, genre)
+	if genre == "" {
+		return fmt.Sprintf("track_summary_%d_%d", min, max)
 	}
-
-	return "track_summary"
+	return fmt.Sprintf("track_summary_%d_%d_%s", min, max, genre)
 }
 
 func (uc *GetTrackSummaryUseCase) getCachedSummary(ctx context.Context, cacheKey string) ([]domainTrack.ArtistSummary, bool) {

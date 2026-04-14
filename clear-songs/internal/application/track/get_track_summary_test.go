@@ -10,6 +10,14 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
+func TestBuildTrackSummaryCacheKey(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "track_summary_0_0", buildTrackSummaryCacheKey(0, 0, ""))
+	assert.Equal(t, "track_summary_0_0_Rock", buildTrackSummaryCacheKey(0, 0, "Rock"))
+	assert.Equal(t, "track_summary_5_50", buildTrackSummaryCacheKey(5, 50, ""))
+	assert.Equal(t, "track_summary_5_50_Hip Hop", buildTrackSummaryCacheKey(5, 50, "Hip Hop"))
+}
+
 // TestGetTrackSummaryUseCase_Execute tests the Execute method of GetTrackSummaryUseCase
 // It verifies that the method correctly handles both cache hits and misses
 func TestGetTrackSummaryUseCase_Execute(t *testing.T) {
@@ -57,7 +65,7 @@ func TestGetTrackSummaryUseCase_Execute(t *testing.T) {
 		}
 
 		// Configure mock expectations
-		mockCacheRepo.On("Get", ctx, "track_summary", mock.Anything).Return(false, nil)
+		mockCacheRepo.On("Get", ctx, "track_summary_0_0", mock.Anything).Return(false, nil)
 		mockCacheRepo.On("GetUserTracks", ctx).Return(nil, nil)
 		mockSpotifyRepo.On("GetAllUserTracks", ctx).Return(tracks, nil)
 		mockCacheRepo.On("SetUserTracks", ctx, tracks, mock.Anything).Return(nil)
@@ -76,7 +84,7 @@ func TestGetTrackSummaryUseCase_Execute(t *testing.T) {
 			},
 		}, nil)
 
-		mockCacheRepo.On("Set", ctx, "track_summary", mock.Anything, mock.Anything).Return(nil)
+		mockCacheRepo.On("Set", ctx, "track_summary_0_0", mock.Anything, mock.Anything).Return(nil)
 
 		// Execute
 		result, err := useCase.Execute(ctx, 0, 0, "")

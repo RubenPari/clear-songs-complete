@@ -11,9 +11,34 @@ type TrackResponse struct {
 	SpotifyURL string   `json:"spotify_url,omitempty"`
 }
 
-// RangeRequest is used for validating query parameters related to track counts
+// RangeRequest binds optional min/max query params. Absent keys stay nil so "min only"
+// does not force max=0 and break validation (see ValidateRangeQuery).
 type RangeRequest struct {
-	Min   int    `form:"min" binding:"min=0"`
-	Max   int    `form:"max" binding:"min=0,gtefield=Min"`
+	Min   *int   `form:"min" binding:"omitempty,min=0"`
+	Max   *int   `form:"max" binding:"omitempty,min=0"`
 	Genre string `form:"genre"`
+}
+
+// ValidateRangeQuery normalizes optional min/max to ints for use cases: 0 means the bound is not applied.
+// Returns a non-empty errMsg if values are inconsistent.
+func ValidateRangeQuery(req *RangeRequest) (min, max int, errMsg string) {
+	if req == nil {
+		return 0, 0, ""
+	}
+	if req.Min != nil {
+		if *req.Min < 0 {
+			return 0, 0, "min must be >= 0"
+		}
+		min = *req.Min
+	}
+	if req.Max != nil {
+		if *req.Max < 0 {
+			return 0, 0, "max must be >= 0"
+		}
+		max = *req.Max
+	}
+	if max > 0 && min > max {
+		return 0, 0, "min must be less than or equal to max"
+	}
+	return min, max, ""
 }
