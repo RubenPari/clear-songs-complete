@@ -88,17 +88,6 @@ func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 	tc.JSONSuccess(c, response)
 }
 
-// Fetches artist genres debug.
-func (tc *TrackController) GetArtistGenresDebug(c *gin.Context) {
-	ctx := c.Request.Context()
-	rows, err := tc.getTrackSummaryUseCase.GetArtistGenresDebug(ctx)
-	if err != nil {
-		tc.HandleDomainError(c, err)
-		return
-	}
-	tc.JSONSuccess(c, rows)
-}
-
 // Fetches tracks by artist.
 func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 	// Get artist ID from URL

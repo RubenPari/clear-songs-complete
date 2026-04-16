@@ -1,13 +1,5 @@
 package track
 
-// ArtistGenresDebugEntry is one row for GET /track/debug/artist-genres (raw Spotify genres per library artist).
-type ArtistGenresDebugEntry struct {
-	ID         string   `json:"id"`
-	Name       string   `json:"name"`
-	TrackCount int      `json:"track_count"`
-	Genres     []string `json:"genres"`
-}
-
 // TrackResponse represents a track in API responses
 type TrackResponse struct {
 	ID         string   `json:"id"`
