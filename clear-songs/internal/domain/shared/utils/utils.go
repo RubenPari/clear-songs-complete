@@ -11,13 +11,7 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
-// ConvertTracksToID converts a list of tracks
-// can be of type:
-// - []spotifyAPI.FullTrack,
-// - []spotifyAPI.PlaylistTrack,
-// - []spotifyAPI.SavedTrack,
-// - []spotifyAPI.SavedAlbum
-// to a list of track IDs
+// Converts tracks to id.
 func ConvertTracksToID(tracks interface{}) ([]spotifyAPI.ID, error) {
 	var trackIDs []spotifyAPI.ID
 
@@ -47,8 +41,7 @@ func ConvertTracksToID(tracks interface{}) ([]spotifyAPI.ID, error) {
 	return trackIDs, nil
 }
 
-// LoadEnvVariables loads the environment variables from the .env file in the
-// current working directory.
+// Loads env variables.
 func LoadEnvVariables() {
 	// get current working directory
 	cwd, errCwd := os.Getwd()

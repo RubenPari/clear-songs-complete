@@ -14,7 +14,7 @@ type DeletePlaylistTracksUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// NewDeletePlaylistTracksUseCase creates a new DeletePlaylistTracksUseCase
+// Creates delete playlist tracks use case.
 func NewDeletePlaylistTracksUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -25,7 +25,7 @@ func NewDeletePlaylistTracksUseCase(
 	}
 }
 
-// Execute deletes all tracks from a playlist
+// Execute.
 func (uc *DeletePlaylistTracksUseCase) Execute(ctx context.Context, playlistID spotifyAPI.ID) error {
 	// 1. Get playlist tracks (from cache or API)
 	tracks, err := uc.getPlaylistTracks(ctx, playlistID)
@@ -56,7 +56,7 @@ func (uc *DeletePlaylistTracksUseCase) Execute(ctx context.Context, playlistID s
 	return nil
 }
 
-// getPlaylistTracks retrieves tracks from cache or API
+// Fetches playlist tracks.
 func (uc *DeletePlaylistTracksUseCase) getPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) ([]spotifyAPI.PlaylistTrack, error) {
 	// Try cache first (if available)
 	if uc.cacheRepo != nil {

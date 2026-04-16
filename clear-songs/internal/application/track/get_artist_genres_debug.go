@@ -5,8 +5,7 @@ import (
 	"sort"
 )
 
-// GetArtistGenresDebug returns every primary artist in the user library with Spotify genre tags.
-// No min/max/genre filter; intended for debugging and tuning genre mapping.
+// Fetches artist genres debug.
 func (uc *GetTrackSummaryUseCase) GetArtistGenresDebug(ctx context.Context) ([]ArtistGenresDebugEntry, error) {
 	tracks, err := uc.getUserTracks(ctx)
 	if err != nil {

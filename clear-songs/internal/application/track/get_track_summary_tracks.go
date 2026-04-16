@@ -6,7 +6,7 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
-// getUserTracks retrieves tracks from cache or API.
+// Fetches user tracks.
 func (uc *GetTrackSummaryUseCase) getUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
 	return getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 }

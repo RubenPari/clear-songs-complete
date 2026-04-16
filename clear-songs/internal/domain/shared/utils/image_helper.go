@@ -2,8 +2,7 @@ package utils
 
 import "github.com/zmb3/spotify"
 
-// GetSmallestImage returns the smallest image URL that fits within maxWidth,
-// or the smallest available image if none fit
+// Fetches smallest image.
 func GetSmallestImage(images []spotify.Image, maxWidth int) string {
 	if len(images) == 0 {
 		return ""
@@ -20,7 +19,7 @@ func GetSmallestImage(images []spotify.Image, maxWidth int) string {
 	return ""
 }
 
-// GetMediumImage returns a medium-sized image (around 300-640px width)
+// Fetches medium image.
 func GetMediumImage(images []spotify.Image) string {
 	return GetSmallestImage(images, 300)
 }

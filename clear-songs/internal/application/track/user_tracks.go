@@ -12,6 +12,7 @@ import (
 
 const userTracksCacheTTL = 5 * time.Minute
 
+// Fetches user tracks.
 func getUserTracks(ctx context.Context, spotifyRepo shared.SpotifyRepository, cacheRepo shared.CacheRepository) ([]spotifyAPI.SavedTrack, error) {
 	if cacheRepo != nil {
 		cached, err := cacheRepo.GetUserTracks(ctx)

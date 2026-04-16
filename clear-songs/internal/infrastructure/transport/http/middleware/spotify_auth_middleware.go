@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SpotifyAuthMiddleware requires Spotify authentication
+// Spotify auth middleware.
 func SpotifyAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get Spotify repository from context (set by SessionMiddleware)

@@ -20,7 +20,7 @@ type PlaylistControllerRefactored struct {
 	deletePlaylistAndLibraryUC *playlist.DeletePlaylistAndLibraryTracksUseCase
 }
 
-// NewPlaylistController creates a new PlaylistController
+// Creates playlist controller.
 func NewPlaylistController(
 	getUserPlaylistsUC *playlist.GetUserPlaylistsUseCase,
 	deletePlaylistTracksUC *playlist.DeletePlaylistTracksUseCase,
@@ -33,7 +33,7 @@ func NewPlaylistController(
 	}
 }
 
-// GetUserPlaylists handles GET /playlist/list
+// Fetches user playlists.
 func (pc *PlaylistControllerRefactored) GetUserPlaylists(c *gin.Context) {
 	ctx := c.Request.Context()
 	playlists, err := pc.getUserPlaylistsUC.Execute(ctx)
@@ -57,7 +57,7 @@ func (pc *PlaylistControllerRefactored) GetUserPlaylists(c *gin.Context) {
 	pc.JSONSuccess(c, response)
 }
 
-// DeleteAllPlaylistTracks handles DELETE /playlist/delete-tracks
+// Deletes all playlist tracks.
 func (pc *PlaylistControllerRefactored) DeleteAllPlaylistTracks(c *gin.Context) {
 	var req PlaylistRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -76,7 +76,7 @@ func (pc *PlaylistControllerRefactored) DeleteAllPlaylistTracks(c *gin.Context) 
 	pc.JSONSuccess(c, gin.H{"message": "Tracks deleted successfully"})
 }
 
-// DeleteAllPlaylistAndUserTracks handles DELETE /playlist/delete-tracks-and-library
+// Deletes all playlist and user tracks.
 func (pc *PlaylistControllerRefactored) DeleteAllPlaylistAndUserTracks(c *gin.Context) {
 	var req PlaylistRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

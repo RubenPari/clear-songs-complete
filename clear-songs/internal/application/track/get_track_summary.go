@@ -16,7 +16,7 @@ type GetTrackSummaryUseCase struct {
 	aiRepo      shared.AIRepository
 }
 
-// NewGetTrackSummaryUseCase creates a new GetTrackSummaryUseCase
+// Creates get track summary use case.
 func NewGetTrackSummaryUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -29,7 +29,7 @@ func NewGetTrackSummaryUseCase(
 	}
 }
 
-// Execute retrieves track summary grouped by artist, optionally filtered by range and genre
+// Execute.
 func (uc *GetTrackSummaryUseCase) Execute(ctx context.Context, min, max int, genre string) ([]track.ArtistSummary, error) {
 	cacheKey := buildTrackSummaryCacheKey(min, max, genre)
 	if cached, found := uc.getCachedSummary(ctx, cacheKey); found {

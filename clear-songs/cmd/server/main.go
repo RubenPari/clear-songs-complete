@@ -20,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// main starts the application.
 func main() {
 	// Initialize environment and DI
 	utils.LoadEnvVariables()

@@ -9,14 +9,14 @@ type LoginUseCase struct {
 	oauthConfig *oauth2.Config
 }
 
-// NewLoginUseCase creates a new LoginUseCase
+// Creates login use case.
 func NewLoginUseCase(oauthConfig *oauth2.Config) *LoginUseCase {
 	return &LoginUseCase{
 		oauthConfig: oauthConfig,
 	}
 }
 
-// Execute generates the OAuth authorization URL
+// Execute.
 func (uc *LoginUseCase) Execute(state string) string {
 	if state == "" {
 		state = "state"

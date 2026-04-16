@@ -121,9 +121,7 @@ var genreMapping = []struct {
 	},
 }
 
-// ResolveGenre maps a Spotify genres array to a single canonical genre.
-// It uses only the first element of the array (priority genre).
-// Returns "" if no match is found or the array is empty.
+// Resolves genre.
 func ResolveGenre(spotifyGenres []string) string {
 	if len(spotifyGenres) == 0 {
 		return ""
@@ -142,7 +140,7 @@ func ResolveGenre(spotifyGenres []string) string {
 	return ""
 }
 
-// NormalizeAIGenreLabel normalizes Gemini free-text before keyword matching (hyphens, spacing).
+// Normalizes aigenre label.
 func NormalizeAIGenreLabel(s string) string {
 	s = strings.ToLower(strings.TrimSpace(s))
 	s = strings.ReplaceAll(s, "hip-hop", "hip hop")
@@ -150,7 +148,7 @@ func NormalizeAIGenreLabel(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// ResolveSingleGenre maps one Spotify genre string through the same keyword rules as ResolveGenre.
+// Resolves single genre.
 func ResolveSingleGenre(spotifyGenre string) string {
 	g := strings.ToLower(strings.TrimSpace(spotifyGenre))
 	if g == "" {
@@ -166,8 +164,7 @@ func ResolveSingleGenre(spotifyGenre string) string {
 	return ""
 }
 
-// MatchesGenreFilter is true if no filter is set, if any Spotify tag resolves to requestedCanonical,
-// or if the aggregate resolved genre (e.g. from AI) matches.
+// Matches genre filter.
 func MatchesGenreFilter(spotifyGenres []string, resolvedAggregate, requestedCanonical string) bool {
 	if requestedCanonical == "" {
 		return true

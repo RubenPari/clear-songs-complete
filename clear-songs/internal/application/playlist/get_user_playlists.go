@@ -16,7 +16,7 @@ type GetUserPlaylistsUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// NewGetUserPlaylistsUseCase creates a new GetUserPlaylistsUseCase
+// Creates get user playlists use case.
 func NewGetUserPlaylistsUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -27,7 +27,7 @@ func NewGetUserPlaylistsUseCase(
 	}
 }
 
-// Execute retrieves all playlists owned or followed by the user
+// Execute.
 func (uc *GetUserPlaylistsUseCase) Execute(ctx context.Context) ([]spotifyAPI.SimplePlaylist, error) {
 	cacheKey := "userPlaylists"
 

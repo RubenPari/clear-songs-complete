@@ -26,9 +26,7 @@ type RedisCacheRepository struct {
 	ctx    context.Context
 }
 
-// NewRedisCacheRepository creates a new Redis cache repository.
-// If REDIS_URL is set (e.g. redis:// or rediss:// from Fly/Upstash), it is used via redis.ParseURL.
-// Otherwise REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_DB are used (defaults: 127.0.0.1:6379).
+// Creates redis cache repository.
 func NewRedisCacheRepository() (*RedisCacheRepository, error) {
 	ctx := context.Background()
 
@@ -77,6 +75,7 @@ func NewRedisCacheRepository() (*RedisCacheRepository, error) {
 	}, nil
 }
 
+// Ping redis with retry.
 func pingRedisWithRetry(ctx context.Context, rdb *redis.Client) error {
 	const attempts = 3
 	var lastErr error
@@ -92,6 +91,7 @@ func pingRedisWithRetry(ctx context.Context, rdb *redis.Client) error {
 	return lastErr
 }
 
+// Creates client from redis url.
 func newClientFromRedisURL(ctx context.Context, redisURL string) (*redis.Client, error) {
 	dial := func(url string) (*redis.Client, error) {
 		opt, err := redis.ParseURL(url)
@@ -128,7 +128,7 @@ func newClientFromRedisURL(ctx context.Context, redisURL string) (*redis.Client,
 	return nil, err
 }
 
-// SetToken stores the OAuth token in cache
+// Sets token.
 func (r *RedisCacheRepository) SetToken(ctx context.Context, token *oauth2.Token) error {
 	if token == nil {
 		return r.ClearToken(ctx)
@@ -136,7 +136,7 @@ func (r *RedisCacheRepository) SetToken(ctx context.Context, token *oauth2.Token
 	return r.Set(ctx, "spotify_token", token, tokenTTL)
 }
 
-// GetToken retrieves the OAuth token from cache
+// Fetches token.
 func (r *RedisCacheRepository) GetToken(ctx context.Context) (*oauth2.Token, error) {
 	var token oauth2.Token
 	found, err := r.Get(ctx, "spotify_token", &token)
@@ -149,12 +149,12 @@ func (r *RedisCacheRepository) GetToken(ctx context.Context) (*oauth2.Token, err
 	return &token, nil
 }
 
-// ClearToken removes the token from cache
+// Clears token.
 func (r *RedisCacheRepository) ClearToken(ctx context.Context) error {
 	return r.Delete(ctx, "spotify_token")
 }
 
-// GetUserTracks retrieves cached user tracks
+// Fetches user tracks.
 func (r *RedisCacheRepository) GetUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
 	var tracks []spotifyAPI.SavedTrack
 	found, err := r.Get(ctx, "userTracks", &tracks)
@@ -167,13 +167,12 @@ func (r *RedisCacheRepository) GetUserTracks(ctx context.Context) ([]spotifyAPI.
 	return tracks, nil
 }
 
-// SetUserTracks stores user tracks in cache
+// Sets user tracks.
 func (r *RedisCacheRepository) SetUserTracks(ctx context.Context, tracks []spotifyAPI.SavedTrack, ttl time.Duration) error {
 	return r.Set(ctx, "userTracks", tracks, ttl)
 }
 
-// InvalidateUserTracks removes cached user tracks and all derived track-summary entries
-// (keys prefixed with track_summary) so GET /track/summary cannot return stale aggregates.
+// Invalidates user tracks.
 func (r *RedisCacheRepository) InvalidateUserTracks(ctx context.Context) error {
 	if err := r.Delete(ctx, "userTracks"); err != nil {
 		return err
@@ -181,7 +180,7 @@ func (r *RedisCacheRepository) InvalidateUserTracks(ctx context.Context) error {
 	return r.deleteKeysByPattern(ctx, "track_summary*")
 }
 
-// deleteKeysByPattern removes all keys matching a Redis glob pattern (non-blocking SCAN).
+// Deletes keys by pattern.
 func (r *RedisCacheRepository) deleteKeysByPattern(ctx context.Context, pattern string) error {
 	if r.client == nil {
 		return nil
@@ -205,7 +204,7 @@ func (r *RedisCacheRepository) deleteKeysByPattern(ctx context.Context, pattern 
 	return nil
 }
 
-// GetPlaylistTracks retrieves cached playlist tracks
+// Fetches playlist tracks.
 func (r *RedisCacheRepository) GetPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) ([]spotifyAPI.PlaylistTrack, error) {
 	key := "tracksPlaylist" + playlistID.String()
 	var tracks []spotifyAPI.PlaylistTrack
@@ -219,19 +218,19 @@ func (r *RedisCacheRepository) GetPlaylistTracks(ctx context.Context, playlistID
 	return tracks, nil
 }
 
-// SetPlaylistTracks stores playlist tracks in cache
+// Sets playlist tracks.
 func (r *RedisCacheRepository) SetPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID, tracks []spotifyAPI.PlaylistTrack, ttl time.Duration) error {
 	key := "tracksPlaylist" + playlistID.String()
 	return r.Set(ctx, key, tracks, ttl)
 }
 
-// InvalidatePlaylistTracks removes playlist tracks from cache
+// Invalidates playlist tracks.
 func (r *RedisCacheRepository) InvalidatePlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) error {
 	key := "tracksPlaylist" + playlistID.String()
 	return r.Delete(ctx, key)
 }
 
-// Get retrieves a value from cache
+// Fetches.
 func (r *RedisCacheRepository) Get(ctx context.Context, key string, target interface{}) (bool, error) {
 	if r.client == nil {
 		return false, nil
@@ -252,7 +251,7 @@ func (r *RedisCacheRepository) Get(ctx context.Context, key string, target inter
 	return true, nil
 }
 
-// Set stores a value in cache
+// Sets.
 func (r *RedisCacheRepository) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	if r.client == nil {
 		return nil // Silently fail if Redis is not available
@@ -266,7 +265,7 @@ func (r *RedisCacheRepository) Set(ctx context.Context, key string, value interf
 	return r.client.Set(ctx, key, data, ttl).Err()
 }
 
-// Delete removes a key from cache
+// Deletes.
 func (r *RedisCacheRepository) Delete(ctx context.Context, key string) error {
 	if r.client == nil {
 		return nil

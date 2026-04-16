@@ -12,7 +12,7 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
-// CacheInvalidationMiddleware invalidates cache after successful write operations.
+// Cache invalidation middleware.
 func CacheInvalidationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
@@ -36,6 +36,7 @@ func CacheInvalidationMiddleware() gin.HandlerFunc {
 	}
 }
 
+// Cache repository from context.
 func cacheRepositoryFromContext(c *gin.Context) (shared.CacheRepository, bool) {
 	repo, exists := c.Get("cacheRepository")
 	if !exists {
@@ -50,6 +51,7 @@ func cacheRepositoryFromContext(c *gin.Context) (shared.CacheRepository, bool) {
 	return cacheRepo, true
 }
 
+// Checks whether write method.
 func isWriteMethod(method string) bool {
 	switch method {
 	case "DELETE", "POST", "PUT", "PATCH":
@@ -59,6 +61,7 @@ func isWriteMethod(method string) bool {
 	}
 }
 
+// Invalidates by request.
 func invalidateByRequest(c *gin.Context, cacheRepo shared.CacheRepository) error {
 	ctx := c.Request.Context()
 	path := c.Request.URL.Path
@@ -84,6 +87,7 @@ func invalidateByRequest(c *gin.Context, cacheRepo shared.CacheRepository) error
 	}
 }
 
+// Invalidates playlist caches.
 func invalidatePlaylistCaches(ctx context.Context, c *gin.Context, cacheRepo shared.CacheRepository, path string) error {
 	var errs []error
 

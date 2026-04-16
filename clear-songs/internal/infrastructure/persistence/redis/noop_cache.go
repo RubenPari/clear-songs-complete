@@ -12,55 +12,67 @@ import (
 // Used when Redis is not available
 type NoOpCacheRepository struct{}
 
-// NewNoOpCacheRepository creates a new no-op cache repository
+// Creates no op cache repository.
 func NewNoOpCacheRepository() shared.CacheRepository {
 	return &NoOpCacheRepository{}
 }
 
+// Sets token.
 func (n *NoOpCacheRepository) SetToken(ctx context.Context, token *oauth2.Token) error {
 	return nil // No-op
 }
 
+// Fetches token.
 func (n *NoOpCacheRepository) GetToken(ctx context.Context) (*oauth2.Token, error) {
 	return nil, nil // No token found
 }
 
+// Clears token.
 func (n *NoOpCacheRepository) ClearToken(ctx context.Context) error {
 	return nil // No-op
 }
 
+// Fetches user tracks.
 func (n *NoOpCacheRepository) GetUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
 	return nil, nil // No cache
 }
 
+// Sets user tracks.
 func (n *NoOpCacheRepository) SetUserTracks(ctx context.Context, tracks []spotifyAPI.SavedTrack, ttl time.Duration) error {
 	return nil // No-op
 }
 
+// Invalidates user tracks.
 func (n *NoOpCacheRepository) InvalidateUserTracks(ctx context.Context) error {
 	return nil // No-op
 }
 
+// Fetches playlist tracks.
 func (n *NoOpCacheRepository) GetPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) ([]spotifyAPI.PlaylistTrack, error) {
 	return nil, nil // No cache
 }
 
+// Sets playlist tracks.
 func (n *NoOpCacheRepository) SetPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID, tracks []spotifyAPI.PlaylistTrack, ttl time.Duration) error {
 	return nil // No-op
 }
 
+// Invalidates playlist tracks.
 func (n *NoOpCacheRepository) InvalidatePlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) error {
 	return nil // No-op
 }
 
+// Fetches.
 func (n *NoOpCacheRepository) Get(ctx context.Context, key string, target interface{}) (bool, error) {
 	return false, nil // Not found
 }
 
+// Sets.
 func (n *NoOpCacheRepository) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
 	return nil // No-op
 }
 
+// Deletes.
 func (n *NoOpCacheRepository) Delete(ctx context.Context, key string) error {
 	return nil // No-op
 }

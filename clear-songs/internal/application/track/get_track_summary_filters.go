@@ -2,7 +2,7 @@ package track
 
 import domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
 
-// FilterSummaryByRange filters artist summaries by inclusive min/max count.
+// Filter summary by range.
 func FilterSummaryByRange(tracks []domainTrack.ArtistSummary, min, max int) []domainTrack.ArtistSummary {
 	filtered := make([]domainTrack.ArtistSummary, 0, len(tracks))
 

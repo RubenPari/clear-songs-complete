@@ -35,7 +35,7 @@ func NewSuccess[T any](data T) APIResponse[T] {
 	}
 }
 
-// NewError creates an error response
+// Creates error.
 func NewError(code, message string) APIResponse[any] {
 	return APIResponse[any]{
 		Success: false,
@@ -49,22 +49,22 @@ func NewError(code, message string) APIResponse[any] {
 	}
 }
 
-// ValidationErr creates a validation error response
+// Validation err.
 func ValidationErr(message string) APIResponse[any] {
 	return NewError("VALIDATION_ERROR", message)
 }
 
-// InternalErr creates an internal server error response
+// Internal err.
 func InternalErr(message string) APIResponse[any] {
 	return NewError("INTERNAL_ERROR", message)
 }
 
-// NotFoundErr creates a not found error response
+// Not found err.
 func NotFoundErr(resource string) APIResponse[any] {
 	return NewError("NOT_FOUND", resource+" not found")
 }
 
-// UnauthorizedErr creates an unauthorized error response
+// Unauthorized err.
 func UnauthorizedErr() APIResponse[any] {
 	return NewError("UNAUTHORIZED", "Authentication required")
 }

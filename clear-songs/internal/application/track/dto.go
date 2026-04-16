@@ -27,8 +27,7 @@ type RangeRequest struct {
 	Genre string `form:"genre"`
 }
 
-// ValidateRangeQuery normalizes optional min/max to ints for use cases: 0 means the bound is not applied.
-// Returns a non-empty errMsg if values are inconsistent.
+// Validate range query.
 func ValidateRangeQuery(req *RangeRequest) (min, max int, errMsg string) {
 	if req == nil {
 		return 0, 0, ""

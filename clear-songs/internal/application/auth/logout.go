@@ -12,7 +12,7 @@ type LogoutUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// NewLogoutUseCase creates a new LogoutUseCase
+// Creates logout use case.
 func NewLogoutUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -23,7 +23,7 @@ func NewLogoutUseCase(
 	}
 }
 
-// Execute logs out the user by clearing tokens
+// Execute.
 func (uc *LogoutUseCase) Execute(ctx context.Context) error {
 	// Clear token from Spotify repository
 	_ = uc.spotifyRepo.SetAccessToken(nil)

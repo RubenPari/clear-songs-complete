@@ -50,7 +50,7 @@ type Container struct {
 	DeletePlaylistAndLibraryUC *playlist.DeletePlaylistAndLibraryTracksUseCase
 }
 
-// NewContainer creates and initializes a new dependency injection container
+// Creates container.
 func NewContainer() (*Container, error) {
 	// Initialize OAuth config
 	oauthConfig, err := GetOAuth2Config()
@@ -138,7 +138,7 @@ func NewContainer() (*Container, error) {
 	return container, nil
 }
 
-// GetOAuth2Config returns OAuth2 configuration from environment variables
+// Fetches oauth2 config.
 func GetOAuth2Config() (*oauth2.Config, error) {
 	clientID := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("CLIENT_SECRET")

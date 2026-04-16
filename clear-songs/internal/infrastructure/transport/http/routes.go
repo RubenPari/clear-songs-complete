@@ -16,6 +16,7 @@ import (
  * @param server - The Gin engine instance to configure routes on
  * @param container - The dependency injection container
  */
+// Registers HTTP routes.
 func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	/**
 	 * Global Middleware

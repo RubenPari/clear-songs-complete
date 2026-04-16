@@ -11,11 +11,12 @@ import (
 
 const artistAIGenreKeyPrefix = "artist_ai_genre:"
 
+// Artist aigenre cache key.
 func artistAIGenreCacheKey(artistKey string) string {
 	return artistAIGenreKeyPrefix + artistKey
 }
 
-// artistAIGenreCacheTTL returns TTL for per-artist canonical genre (default 7 days).
+// Artist aigenre cache ttl.
 func artistAIGenreCacheTTL() time.Duration {
 	const defaultSec = 7 * 24 * 3600
 	s := strings.TrimSpace(os.Getenv("ARTIST_AI_GENRE_CACHE_TTL_SEC"))
@@ -29,6 +30,7 @@ func artistAIGenreCacheTTL() time.Duration {
 	return time.Duration(sec) * time.Second
 }
 
+// Fetches cached artist canonical genre.
 func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Context, artistKey string) (string, bool) {
 	if uc.cacheRepo == nil {
 		return "", false
@@ -45,6 +47,7 @@ func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Cont
 	return s, true
 }
 
+// Sets cached artist canonical genre.
 func (uc *GetTrackSummaryUseCase) setCachedArtistCanonicalGenre(ctx context.Context, artistKey, canonical string) {
 	if uc.cacheRepo == nil || strings.TrimSpace(canonical) == "" {
 		return

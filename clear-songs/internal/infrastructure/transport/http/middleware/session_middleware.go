@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SessionMiddleware manages user sessions using dependency injection
+// Session middleware.
 func SessionMiddleware(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,

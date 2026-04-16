@@ -11,7 +11,7 @@ type IsAuthUseCase struct {
 	spotifyRepo shared.SpotifyRepository
 }
 
-// NewIsAuthUseCase creates a new IsAuthUseCase
+// Creates is auth use case.
 func NewIsAuthUseCase(spotifyRepo shared.SpotifyRepository) *IsAuthUseCase {
 	return &IsAuthUseCase{
 		spotifyRepo: spotifyRepo,
@@ -26,7 +26,7 @@ type UserInfo struct {
 	ProfileImage string
 }
 
-// Execute checks if user is authenticated and returns user info
+// Execute.
 func (uc *IsAuthUseCase) Execute(ctx context.Context) (*UserInfo, error) {
 	// Try to get current user
 	user, err := uc.spotifyRepo.GetCurrentUser(ctx)

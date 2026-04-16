@@ -15,7 +15,7 @@ type DeleteTracksByRangeUseCase struct {
 	deleteByArtistUC  *DeleteTracksByArtistUseCase
 }
 
-// NewDeleteTracksByRangeUseCase creates a new DeleteTracksByRangeUseCase
+// Creates delete tracks by range use case.
 func NewDeleteTracksByRangeUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -30,7 +30,7 @@ func NewDeleteTracksByRangeUseCase(
 	}
 }
 
-// Execute deletes tracks within a count range
+// Execute.
 func (uc *DeleteTracksByRangeUseCase) Execute(ctx context.Context, min, max int) error {
 	// 1. Get track summary filtered by range (no genre filter for deletion)
 	summary, err := uc.getTrackSummaryUC.Execute(ctx, min, max, "")

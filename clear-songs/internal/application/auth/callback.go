@@ -18,7 +18,7 @@ type CallbackUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// NewCallbackUseCase creates a new CallbackUseCase
+// Creates callback use case.
 func NewCallbackUseCase(
 	oauthConfig *oauth2.Config,
 	spotifyRepo shared.SpotifyRepository,
@@ -31,7 +31,7 @@ func NewCallbackUseCase(
 	}
 }
 
-// Execute processes the OAuth callback and returns the frontend redirect URL
+// Execute.
 func (uc *CallbackUseCase) Execute(ctx context.Context, code string) (string, error) {
 	// 1. Exchange code for token
 	token, err := uc.oauthConfig.Exchange(ctx, code)

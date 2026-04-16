@@ -18,7 +18,7 @@ type artistData struct {
 	count int
 }
 
-// calculateSummary calculates artist summary from tracks.
+// Calculate summary.
 func (uc *GetTrackSummaryUseCase) calculateSummary(
 	ctx context.Context,
 	tracks []spotifyAPI.SavedTrack,
@@ -32,7 +32,7 @@ func (uc *GetTrackSummaryUseCase) calculateSummary(
 	return uc.buildArtistSummary(ctx, artistMap, artistDetails, min, max, genre)
 }
 
-// groupTracksByPrimaryArtist groups tracks by their primary artist.
+// Group tracks by primary artist.
 func groupTracksByPrimaryArtist(tracks []spotifyAPI.SavedTrack) map[string]artistData {
 	artistMap := make(map[string]artistData)
 
@@ -57,7 +57,7 @@ func groupTracksByPrimaryArtist(tracks []spotifyAPI.SavedTrack) map[string]artis
 	return artistMap
 }
 
-// collectArtistIDs collects artist IDs from the artist map.
+// Collect artist ids.
 func collectArtistIDs(artistMap map[string]artistData) []spotifyAPI.ID {
 	artistIDs := make([]spotifyAPI.ID, 0, len(artistMap))
 	for _, data := range artistMap {
@@ -70,7 +70,7 @@ func collectArtistIDs(artistMap map[string]artistData) []spotifyAPI.ID {
 	return artistIDs
 }
 
-// fetchArtistDetails fetches artist details in batches.
+// Fetch artist details.
 func (uc *GetTrackSummaryUseCase) fetchArtistDetails(ctx context.Context, artistIDs []spotifyAPI.ID) map[string]*spotifyAPI.FullArtist {
 	artistDetails := make(map[string]*spotifyAPI.FullArtist)
 	if len(artistIDs) == 0 {
@@ -92,6 +92,7 @@ func (uc *GetTrackSummaryUseCase) fetchArtistDetails(ctx context.Context, artist
 	return artistDetails
 }
 
+// Builds artist summary.
 func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	ctx context.Context,
 	artistMap map[string]artistData,
@@ -171,6 +172,7 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	return summary
 }
 
+// Applies aigenre result.
 func (uc *GetTrackSummaryUseCase) applyAIGenreResult(ctx context.Context, artistName, mapKey, aiRaw string) string {
 	if aiRaw == "" {
 		log.Printf("[genre] AI fallback: empty RAW artist=%q", artistName)
@@ -187,7 +189,7 @@ func (uc *GetTrackSummaryUseCase) applyAIGenreResult(ctx context.Context, artist
 	return canonical
 }
 
-// passesRangeFilter checks if the count of tracks by an artist falls within the specified range.
+// Passes range filter.
 func passesRangeFilter(count, min, max int) bool {
 	if min > 0 && count < min {
 		return false
@@ -199,7 +201,7 @@ func passesRangeFilter(count, min, max int) bool {
 	return true
 }
 
-// extractArtistMetadata extracts the image URL and genres from the artist details.
+// Extract artist metadata.
 func extractArtistMetadata(artistID string, artistDetails map[string]*spotifyAPI.FullArtist) (string, []string) {
 	if artist, ok := artistDetails[artistID]; ok {
 		return utils.GetMediumImage(artist.Images), artist.Genres

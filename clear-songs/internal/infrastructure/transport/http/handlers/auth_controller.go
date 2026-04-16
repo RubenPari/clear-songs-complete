@@ -21,7 +21,7 @@ type AuthController struct {
 	isAuthUC   *auth.IsAuthUseCase
 }
 
-// NewAuthController creates a new AuthController
+// Creates auth controller.
 func NewAuthController(
 	loginUC *auth.LoginUseCase,
 	callbackUC *auth.CallbackUseCase,
@@ -36,7 +36,7 @@ func NewAuthController(
 	}
 }
 
-// Login handles GET /auth/login
+// Starts.
 func (ac *AuthController) Login(c *gin.Context) {
 	state := uuid.NewString()
 	ac.setOAuthStateCookie(c, state)
@@ -45,7 +45,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 	c.Redirect(http.StatusFound, url)
 }
 
-// Callback handles GET /auth/callback
+// Callback.
 func (ac *AuthController) Callback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
@@ -80,7 +80,7 @@ func (ac *AuthController) Callback(c *gin.Context) {
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
-// Logout handles GET /auth/logout
+// Logs out.
 func (ac *AuthController) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 	if err := ac.logoutUC.Execute(ctx); err != nil {
@@ -91,7 +91,7 @@ func (ac *AuthController) Logout(c *gin.Context) {
 	ac.JSONSuccess(c, gin.H{"message": "User logged out successfully"})
 }
 
-// IsAuth handles GET /auth/is-auth
+// Checks whether auth.
 func (ac *AuthController) IsAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	userInfo, err := ac.isAuthUC.Execute(ctx)
@@ -110,6 +110,7 @@ func (ac *AuthController) IsAuth(c *gin.Context) {
 	})
 }
 
+// Request is https.
 func requestIsHTTPS(c *gin.Context) bool {
 	if c.Request.TLS != nil {
 		return true
@@ -117,11 +118,13 @@ func requestIsHTTPS(c *gin.Context) bool {
 	return strings.EqualFold(c.Request.Header.Get("X-Forwarded-Proto"), "https")
 }
 
+// Sets oauth state cookie.
 func (ac *AuthController) setOAuthStateCookie(c *gin.Context, state string) {
 	secure := requestIsHTTPS(c)
 	c.SetCookie("oauth_state", state, 10*60, "/", "", secure, true)
 }
 
+// Clears oauth state cookie.
 func (ac *AuthController) clearOAuthStateCookie(c *gin.Context) {
 	secure := requestIsHTTPS(c)
 	c.SetCookie("oauth_state", "", -1, "/", "", secure, true)

@@ -19,7 +19,7 @@ type TrackController struct {
 	getTracksByArtistUC    *track.GetTracksByArtistUseCase
 }
 
-// NewTrackController creates a new TrackController
+// Creates track controller.
 func NewTrackController(
 	cacheRepo shared.CacheRepository,
 	getTrackSummaryUseCase *track.GetTrackSummaryUseCase,
@@ -38,8 +38,7 @@ func NewTrackController(
 	}
 }
 
-// InvalidateLibraryCache handles POST /track/library-cache/invalidate — clears user tracks
-// and derived track-summary keys in Redis so the next GET /track/summary is recomputed.
+// Invalidates library cache.
 func (tc *TrackController) InvalidateLibraryCache(c *gin.Context) {
 	if tc.cacheRepo == nil {
 		tc.JSONSuccess(c, gin.H{"message": "No cache configured"})
@@ -53,7 +52,7 @@ func (tc *TrackController) InvalidateLibraryCache(c *gin.Context) {
 	tc.JSONSuccess(c, gin.H{"message": "Library cache invalidated"})
 }
 
-// GetTrackSummary handles GET /track/summary
+// Fetches track summary.
 func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 	var req track.RangeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -89,7 +88,7 @@ func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 	tc.JSONSuccess(c, response)
 }
 
-// GetArtistGenresDebug handles GET /track/debug/artist-genres — full library artists with raw Spotify genre arrays.
+// Fetches artist genres debug.
 func (tc *TrackController) GetArtistGenresDebug(c *gin.Context) {
 	ctx := c.Request.Context()
 	rows, err := tc.getTrackSummaryUseCase.GetArtistGenresDebug(ctx)
@@ -100,7 +99,7 @@ func (tc *TrackController) GetArtistGenresDebug(c *gin.Context) {
 	tc.JSONSuccess(c, rows)
 }
 
-// GetTracksByArtist handles GET /track/by-artist/:id_artist
+// Fetches tracks by artist.
 func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 	// Get artist ID from URL
 	idArtistString := c.Param("id_artist")
@@ -148,7 +147,7 @@ func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 	tc.JSONSuccess(c, response)
 }
 
-// DeleteTrackByArtist handles DELETE /track/by-artist/:id_artist
+// Deletes track by artist.
 func (tc *TrackController) DeleteTrackByArtist(c *gin.Context) {
 	// Get artist ID from URL
 	idArtistString := c.Param("id_artist")
@@ -169,7 +168,7 @@ func (tc *TrackController) DeleteTrackByArtist(c *gin.Context) {
 	tc.JSONSuccess(c, gin.H{"message": "Tracks deleted successfully"})
 }
 
-// DeleteTrack handles DELETE /track/:id_track
+// Deletes track.
 func (tc *TrackController) DeleteTrack(c *gin.Context) {
 	// Get track ID from URL
 	idTrackString := c.Param("id_track")
@@ -190,7 +189,7 @@ func (tc *TrackController) DeleteTrack(c *gin.Context) {
 	tc.JSONSuccess(c, gin.H{"message": "Track deleted successfully"})
 }
 
-// DeleteTrackByRange handles DELETE /track/by-range
+// Deletes track by range.
 func (tc *TrackController) DeleteTrackByRange(c *gin.Context) {
 	var req track.RangeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

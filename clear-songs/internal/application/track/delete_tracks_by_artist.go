@@ -13,7 +13,7 @@ type DeleteTracksByArtistUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// NewDeleteTracksByArtistUseCase creates a new DeleteTracksByArtistUseCase
+// Creates delete tracks by artist use case.
 func NewDeleteTracksByArtistUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -24,7 +24,7 @@ func NewDeleteTracksByArtistUseCase(
 	}
 }
 
-// Execute deletes all tracks from a specific artist
+// Execute.
 func (uc *DeleteTracksByArtistUseCase) Execute(ctx context.Context, artistID spotifyAPI.ID) error {
 	// 1. Get user tracks (from cache or API)
 	tracks, err := uc.getUserTracks(ctx)
@@ -55,7 +55,7 @@ func (uc *DeleteTracksByArtistUseCase) Execute(ctx context.Context, artistID spo
 	return nil
 }
 
-// getUserTracks retrieves tracks from cache or API.
+// Fetches user tracks.
 func (uc *DeleteTracksByArtistUseCase) getUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
 	return getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 }

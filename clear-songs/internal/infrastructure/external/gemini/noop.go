@@ -14,12 +14,12 @@ type NoOpAIRepository struct{}
 
 var noOpGenreWarn sync.Once
 
-// NewNoOpAIRepository creates a new no-op AI repository
+// Creates no op airepository.
 func NewNoOpAIRepository() *NoOpAIRepository {
 	return &NoOpAIRepository{}
 }
 
-// ResolveArtistGenres returns empty genre for each key (no-op).
+// Resolves artist genres.
 func (n *NoOpAIRepository) ResolveArtistGenres(ctx context.Context, lookups []shared.AIArtistLookup) (map[string]string, error) {
 	if len(lookups) > 0 {
 		noOpGenreWarn.Do(func() {
