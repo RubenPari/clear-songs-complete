@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/test/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/mock"
 	spotifyAPI "github.com/zmb3/spotify"
 )
@@ -103,4 +105,53 @@ func TestGetTrackSummaryUseCase_Execute(t *testing.T) {
 		assert.Equal(t, 1, result[1].Count)
 		assert.Equal(t, "Rock", result[1].Genre)
 	})
+}
+
+func TestGetTrackSummaryUseCase_Execute_AI_batch_empty_spotify_genres(t *testing.T) {
+	mockSpotifyRepo := new(mocks.MockSpotifyRepository)
+	mockCacheRepo := new(mocks.MockCacheRepository)
+	mockAIRepo := new(mocks.MockAIRepository)
+	useCase := NewGetTrackSummaryUseCase(mockSpotifyRepo, mockCacheRepo, mockAIRepo)
+	ctx := context.Background()
+
+	tracks := []spotifyAPI.SavedTrack{
+		{
+			FullTrack: spotifyAPI.FullTrack{
+				SimpleTrack: spotifyAPI.SimpleTrack{
+					Name: "Song A",
+					Artists: []spotifyAPI.SimpleArtist{
+						{Name: "Artist 1", ID: "1"},
+					},
+				},
+			},
+		},
+	}
+
+	mockCacheRepo.On("Get", ctx, "track_summary_0_0", mock.Anything).Return(false, nil).Once()
+	mockCacheRepo.On("GetUserTracks", ctx).Return(nil, nil)
+	mockSpotifyRepo.On("GetAllUserTracks", ctx).Return(tracks, nil)
+	mockCacheRepo.On("SetUserTracks", ctx, tracks, mock.Anything).Return(nil)
+
+	mockSpotifyRepo.On("GetArtists", ctx, mock.MatchedBy(func(ids []spotifyAPI.ID) bool {
+		return len(ids) == 1 && string(ids[0]) == "1"
+	})).Return([]*spotifyAPI.FullArtist{
+		{
+			SimpleArtist: spotifyAPI.SimpleArtist{ID: "1", Name: "Artist 1"},
+			Genres:       nil,
+		},
+	}, nil)
+
+	mockCacheRepo.On("Get", ctx, "artist_ai_genre:1", mock.Anything).Return(false, nil).Once()
+	mockAIRepo.On("ResolveArtistGenres", ctx, mock.MatchedBy(func(lookups []shared.AIArtistLookup) bool {
+		return len(lookups) == 1 && lookups[0].Key == "1" && lookups[0].Name == "Artist 1"
+	})).Return(map[string]string{"1": "hip hop"}, nil).Once()
+	mockCacheRepo.On("Set", ctx, "artist_ai_genre:1", "Hip Hop", mock.Anything).Return(nil).Once()
+	mockCacheRepo.On("Set", ctx, "track_summary_0_0", mock.Anything, mock.Anything).Return(nil)
+
+	result, err := useCase.Execute(ctx, 0, 0, "")
+
+	assert.NoError(t, err)
+	require.Len(t, result, 1)
+	assert.Equal(t, "Artist 1", result[0].Name)
+	assert.Equal(t, "Hip Hop", result[0].Genre)
 }
