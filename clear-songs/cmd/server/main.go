@@ -3,50 +3,62 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"os"
-	"strings"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/di"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/logging"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres"
 	httptransport "github.com/RubenPari/clear-songs/internal/infrastructure/transport/http"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/transport/http/middleware"
 	"github.com/gin-contrib/cors"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // main starts the application.
 func main() {
-	// Initialize environment and DI
+	logger := logging.InitFromEnv()
+	defer logging.SafeSync(logger)
+
 	utils.LoadEnvVariables()
 
-	// Switch to release mode in production based on env
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	// Initialize Database with Pooling
-	log.Println("Initializing database...")
+	logger.Info("initializing database")
 	if errConnectDb := postgres.Init(); errConnectDb != nil {
-		log.Printf("WARNING: Database initialization failed: %v", errConnectDb)
+		logger.Warn("database initialization failed", zap.Error(errConnectDb))
 	}
 
-	log.Println("Initializing DI container...")
+	logger.Info("initializing DI container")
 	container, err := di.NewContainer()
 	if err != nil {
-		log.Fatalf("Failed to initialize DI container: %v", err)
+		logger.Fatal("failed to initialize DI container", zap.Error(err))
 	}
 
-	// Setup Gin Router
-	log.Println("Setting up router...")
-	router := gin.Default()
+	logger.Info("setting up router")
+	router := gin.New()
+	router.Use(middleware.RequestIDMiddleware())
+	router.Use(ginzap.GinzapWithConfig(logger, &ginzap.Config{
+		TimeFormat: time.RFC3339,
+		UTC:        true,
+		Context: ginzap.Fn(func(c *gin.Context) []zapcore.Field {
+			return []zapcore.Field{zap.String("request_id", c.GetString(logging.RequestIDKey))}
+		}),
+	}))
+	router.Use(ginzap.RecoveryWithZap(logger, true))
 
 	allowedOrigins := []string{"http://127.0.0.1", "http://127.0.0.1:4200", "http://localhost:4200"}
 	if frontendURL := os.Getenv("FRONTEND_URL"); frontendURL != "" {
@@ -57,20 +69,17 @@ func main() {
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		ExposeHeaders:    []string{"Content-Length", "X-Request-ID"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Setup Routes
 	httptransport.SetUpRoutes(router, container)
 
-	// Create HTTP server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
-	// Long summaries (many sequential Gemini calls) can exceed 2m; default write timeout 6m.
 	writeSec := 360
 	if s := strings.TrimSpace(os.Getenv("HTTP_WRITE_TIMEOUT_SEC")); s != "" {
 		if n, err := strconv.Atoi(s); err == nil && n >= 30 && n <= 3600 {
@@ -86,48 +95,43 @@ func main() {
 	timeoutDur := func(sec int) time.Duration { return time.Duration(sec) * time.Second }
 
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: router,
+		Addr:         ":" + port,
+		Handler:      router,
 		ReadTimeout:  timeoutDur(readSec),
 		WriteTimeout: timeoutDur(writeSec),
 		IdleTimeout:  120 * time.Second,
 	}
-	log.Printf("HTTP server timeouts: read=%v write=%v (override with HTTP_READ_TIMEOUT_SEC / HTTP_WRITE_TIMEOUT_SEC)", srv.ReadTimeout, srv.WriteTimeout)
+	logger.Info("HTTP server timeouts configured",
+		zap.Duration("read_timeout", srv.ReadTimeout),
+		zap.Duration("write_timeout", srv.WriteTimeout),
+	)
 
-	// Run server in a goroutine so that it doesn't block
 	go func() {
-		log.Println("Starting server on :" + port)
+		logger.Info("starting server", zap.String("port", port))
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("Server error: %v", err)
+			logger.Fatal("server error", zap.Error(err))
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
-	// kill (no param) default send syscall.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can't be caught, so don't need to add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	logger.Info("shutting down server")
 
-	// The context is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
+		logger.Fatal("server forced to shutdown", zap.Error(err))
 	}
 
-	// Properly close database connections
 	if postgres.Db != nil {
 		sqlDB, err := postgres.Db.DB()
 		if err == nil {
-			sqlDB.Close()
-			log.Println("Database connection closed")
+			_ = sqlDB.Close()
+			logger.Info("database connection closed")
 		}
 	}
 
-	log.Println("Server exiting")
+	logger.Info("server exiting")
 }
