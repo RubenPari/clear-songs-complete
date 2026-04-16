@@ -5,10 +5,25 @@
         <h1 class="page-title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
         <p class="page-subtitle">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
       </div>
-      <button type="button" class="btn btn-refresh" (click)="loadTrackSummary()">
-        <i class="bi bi-arrow-clockwise"></i>
-        <span>{{ 'DASHBOARD.REFRESH' | translate }}</span>
-      </button>
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn btn-debug-genres"
+          [disabled]="debugGenresDownloading()"
+          (click)="downloadArtistGenresJson()"
+          [title]="'DASHBOARD.DEBUG_GENRES_JSON' | translate">
+          @if (debugGenresDownloading()) {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          } @else {
+            <i class="bi bi-filetype-json"></i>
+          }
+          <span>{{ 'DASHBOARD.DEBUG_GENRES_JSON' | translate }}</span>
+        </button>
+        <button type="button" class="btn btn-refresh" (click)="loadTrackSummary()">
+          <i class="bi bi-arrow-clockwise"></i>
+          <span>{{ 'DASHBOARD.REFRESH' | translate }}</span>
+        </button>
+      </div>
     </div>
   </div>
 

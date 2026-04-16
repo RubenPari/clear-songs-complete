@@ -51,6 +51,9 @@ export class DashboardComponent {
   sortColumn = signal<string>('name');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
+  /** True while fetching debug JSON for download. */
+  debugGenresDownloading = signal(false);
+
   /** Single resource; URL factory reads signals so requests refetch when filters change. */
   private readonly trackSummaryResource = runInInjectionContext(this.injector, () =>
     this.trackService.createTrackSummaryResource({
@@ -175,6 +178,36 @@ export class DashboardComponent {
         this.notificationService.error(this.translate.instant('DASHBOARD.LOAD_ERROR'));
       },
     });
+  }
+
+  /** Downloads all library artists with raw Spotify genre arrays as JSON (debug / strategy work). */
+  downloadArtistGenresJson(): void {
+    this.debugGenresDownloading.set(true);
+    this.trackService
+      .getArtistGenresDebug()
+      .pipe(finalize(() => this.debugGenresDownloading.set(false)))
+      .subscribe({
+        next: res => {
+          if (!res.success || res.data === undefined) {
+            this.notificationService.error(this.translate.instant('DASHBOARD.DEBUG_GENRES_ERROR'));
+            return;
+          }
+          const json = JSON.stringify(res.data, null, 2);
+          const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `artist-genres-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        },
+        error: () => {
+          this.notificationService.error(this.translate.instant('DASHBOARD.DEBUG_GENRES_ERROR'));
+        },
+      });
   }
 
   applyFilter(event?: Event): void {

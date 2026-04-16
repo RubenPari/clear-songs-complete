@@ -40,6 +40,14 @@ export interface ArtistSummary {
   genre?: string;
 }
 
+/** Raw Spotify genres per artist from GET /track/debug/artist-genres (debug export). */
+export interface ArtistGenresDebugEntry {
+  id: string;
+  name: string;
+  track_count: number;
+  genres: string[];
+}
+
 /**
  * Playlist Interface
  * 
