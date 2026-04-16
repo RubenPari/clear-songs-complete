@@ -99,7 +99,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
     this.svg = d3.select(container)
       .append('svg')
       .attr('width', this.width + this.margin.left + this.margin.right)
-      .attr('height', this.height)
+      .attr('height', this.height + 50)
       .append('g')
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
 
