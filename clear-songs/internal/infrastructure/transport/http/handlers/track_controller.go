@@ -89,6 +89,17 @@ func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 	tc.JSONSuccess(c, response)
 }
 
+// GetArtistGenresDebug handles GET /track/debug/artist-genres — full library artists with raw Spotify genre arrays.
+func (tc *TrackController) GetArtistGenresDebug(c *gin.Context) {
+	ctx := c.Request.Context()
+	rows, err := tc.getTrackSummaryUseCase.GetArtistGenresDebug(ctx)
+	if err != nil {
+		tc.HandleDomainError(c, err)
+		return
+	}
+	tc.JSONSuccess(c, rows)
+}
+
 // GetTracksByArtist handles GET /track/by-artist/:id_artist
 func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 	// Get artist ID from URL

@@ -60,6 +60,9 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 		track.GET("/summary",
 			middleware.SpotifyAuthMiddleware(),
 			trackController.GetTrackSummary)
+		track.GET("/debug/artist-genres",
+			middleware.SpotifyAuthMiddleware(),
+			trackController.GetArtistGenresDebug)
 		track.GET("/by-artist/:id_artist",
 			middleware.SpotifyAuthMiddleware(),
 			trackController.GetTracksByArtist)
