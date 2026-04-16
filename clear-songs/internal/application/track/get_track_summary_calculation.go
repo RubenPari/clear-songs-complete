@@ -3,6 +3,8 @@ package track
 import (
 	"context"
 	"log"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -108,7 +110,7 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 
 		imageURL, genres := extractArtistMetadata(data.id, artistDetails)
 		resolvedGenre := uc.resolveGenreWithFallback(ctx, data.name, genres)
-		if !passesGenreFilter(resolvedGenre, genre) {
+		if !domainTrack.MatchesGenreFilter(genres, resolvedGenre, genre) {
 			continue
 		}
 
@@ -153,31 +155,50 @@ func extractArtistMetadata(artistID string, artistDetails map[string]*spotifyAPI
 // resolveGenreWithFallback attempts to resolve the genre using the primary method, and falls back to AI if needed.
 func (uc *GetTrackSummaryUseCase) resolveGenreWithFallback(ctx context.Context, artistName string, genres []string) string {
 	resolvedGenre := domainTrack.ResolveGenre(genres)
-	if resolvedGenre != "" || uc.aiRepo == nil {
+	if resolvedGenre != "" {
 		return resolvedGenre
 	}
+	if uc.aiRepo == nil {
+		return ""
+	}
 
-	aiCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	aiCtx, cancel := context.WithTimeout(ctx, geminiRequestTimeout())
 	defer cancel()
+
+	log.Printf("[genre] AI fallback: calling API artist=%q spotifyGenres=%v", artistName, genres)
 
 	aiGenre, err := uc.aiRepo.ResolveArtistGenre(aiCtx, artistName)
 	if err != nil {
-		log.Printf("Gemini fallback failed for artist %s: %v", artistName, err)
+		log.Printf("[genre] AI fallback: ERROR artist=%q err=%v", artistName, err)
 		return ""
 	}
 
 	if aiGenre == "" {
+		log.Printf("[genre] AI fallback: empty response artist=%q", artistName)
 		return ""
 	}
 
-	return domainTrack.ResolveGenre([]string{aiGenre})
-}
-
-// passesGenreFilter checks if the resolved genre matches the requested genre.
-func passesGenreFilter(resolvedGenre, requestedGenre string) bool {
-	if requestedGenre == "" {
-		return true
+	normalized := domainTrack.NormalizeAIGenreLabel(aiGenre)
+	canonical := domainTrack.ResolveGenre([]string{normalized})
+	if canonical == "" {
+		log.Printf("[genre] AI fallback: UNMAPPED artist=%q aiRaw=%q (no keyword matched canonical mapping)", artistName, aiGenre)
+		return ""
 	}
-
-	return strings.EqualFold(resolvedGenre, requestedGenre)
+	log.Printf("[genre] AI fallback: OK artist=%q aiRaw=%q canonical=%q", artistName, aiGenre, canonical)
+	return canonical
 }
+
+// geminiRequestTimeout bounds each Gemini call (default 25s; env GEMINI_REQUEST_TIMEOUT_SEC 5–120).
+func geminiRequestTimeout() time.Duration {
+	const defaultSec = 25
+	s := strings.TrimSpace(os.Getenv("GEMINI_REQUEST_TIMEOUT_SEC"))
+	if s == "" {
+		return defaultSec * time.Second
+	}
+	sec, err := strconv.Atoi(s)
+	if err != nil || sec < 5 || sec > 120 {
+		return defaultSec * time.Second
+	}
+	return time.Duration(sec) * time.Second
+}
+
