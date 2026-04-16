@@ -4,6 +4,9 @@ services:
       context: ./clear-songs
       dockerfile: Dockerfile
     container_name: clear-songs-api
+    # Loads keys from ./.env next to this file; values below override / supplement.
+    env_file:
+      - .env
     environment:
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
@@ -19,7 +22,9 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
       REDIS_DB: 0
+      # Also set in .env (see env_file above). Must be non-empty for AI genre fallback.
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
     ports:
       - "3000:3000"
     depends_on:
