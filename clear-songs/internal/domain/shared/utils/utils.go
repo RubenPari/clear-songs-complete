@@ -2,13 +2,13 @@ package utils
 
 import (
 	"errors"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/joho/godotenv"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 )
 
 // Converts tracks to id.
@@ -47,7 +47,7 @@ func LoadEnvVariables() {
 	cwd, errCwd := os.Getwd()
 
 	if errCwd != nil {
-		log.Fatalf("error getting current working directory: %v", errCwd)
+		zap.L().Fatal("error getting current working directory", zap.Error(errCwd))
 	}
 
 	// check if the OS is Windows
@@ -58,15 +58,18 @@ func LoadEnvVariables() {
 
 	envPath := filepath.Join(cwd, ".env")
 
-	log.Printf("Loading environment variables from: %s", envPath)
+	zap.L().Info("loading environment variables", zap.String("path", envPath))
 
 	errLoadFilePath := godotenv.Load(envPath)
 
 	if errLoadFilePath != nil {
-		log.Printf("Warning: error loading .env file from %s: %v. Using system environment variables.", envPath, errLoadFilePath)
+		zap.L().Warn("error loading .env file, using system environment variables",
+			zap.String("path", envPath),
+			zap.Error(errLoadFilePath),
+		)
 	}
 
-	log.Println("Loaded environment variables from .env file or system")
+	zap.L().Info("loaded environment variables")
 
 	// Verify critical environment variables are loaded
 	redirectURL := os.Getenv("REDIRECT_URL")
@@ -74,7 +77,7 @@ func LoadEnvVariables() {
 		redirectURL = os.Getenv("REDIRECT_URI")
 	}
 	if redirectURL == "" {
-		log.Fatal("REDIRECT_URL or REDIRECT_URI not found in environment variables after loading .env file")
+		zap.L().Fatal("REDIRECT_URL or REDIRECT_URI not found in environment variables after loading .env file")
 	}
-	log.Printf("OAuth Redirect URL configured: %s", redirectURL)
+	zap.L().Info("OAuth redirect URL configured", zap.String("redirect_url", redirectURL))
 }

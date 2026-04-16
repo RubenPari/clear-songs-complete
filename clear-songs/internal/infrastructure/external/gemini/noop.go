@@ -2,10 +2,10 @@ package gemini
 
 import (
 	"context"
-	"log"
 	"sync"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
+	"go.uber.org/zap"
 )
 
 // NoOpAIRepository is a no-op implementation of AIRepository
@@ -23,7 +23,7 @@ func NewNoOpAIRepository() *NoOpAIRepository {
 func (n *NoOpAIRepository) ResolveArtistGenres(ctx context.Context, lookups []shared.AIArtistLookup) (map[string]string, error) {
 	if len(lookups) > 0 {
 		noOpGenreWarn.Do(func() {
-			log.Printf("[genre] GEMINI_API_KEY not set or Gemini init failed — AI fallback is a no-op (set GEMINI_API_KEY in the container env, not only .env file if /app/.env is missing)")
+			zap.L().Warn("Gemini not configured, AI fallback is no-op")
 		})
 	}
 	out := make(map[string]string, len(lookups))

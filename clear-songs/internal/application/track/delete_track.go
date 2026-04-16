@@ -3,10 +3,10 @@ package track
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 )
 
 // DeleteTrackUseCase handles the business logic for deleting a single track
@@ -40,7 +40,7 @@ func (uc *DeleteTrackUseCase) Execute(ctx context.Context, trackID spotifyAPI.ID
 	// 2. Save backup to database
 	if uc.databaseRepo != nil {
 		if err := uc.databaseRepo.SaveFullTracksBackup([]spotifyAPI.FullTrack{*track}); err != nil {
-			log.Printf("warning: failed to backup track %s before deletion: %v", trackID, err)
+			zap.L().Warn("failed to backup track before deletion", zap.String("track_id", trackID.String()), zap.Error(err))
 		}
 	}
 

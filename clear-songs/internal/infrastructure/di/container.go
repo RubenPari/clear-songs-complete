@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/RubenPari/clear-songs/internal/application/auth"
@@ -17,6 +16,7 @@ import (
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/redis"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -77,13 +77,13 @@ func NewContainer() (*Container, error) {
 	if geminiKey != "" {
 		geminiRepo, err := gemini.NewGeminiRepository(context.Background(), geminiKey)
 		if err != nil {
-			log.Printf("WARNING: Gemini initialization failed: %v", err)
+			zap.L().Warn("Gemini initialization failed", zap.Error(err))
 			aiRepo = gemini.NewNoOpAIRepository()
 		} else {
 			aiRepo = geminiRepo
 		}
 	} else {
-		log.Println("WARNING: GEMINI_API_KEY not set, AI genre resolution disabled")
+		zap.L().Warn("GEMINI_API_KEY not set, AI genre resolution disabled")
 		aiRepo = gemini.NewNoOpAIRepository()
 	}
 

@@ -29,11 +29,11 @@ package postgres
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres/models"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -61,9 +61,7 @@ func Init() error {
 
 	// Check if database configuration is provided
 	if host == "" || port == "" || user == "" || password == "" || dbname == "" {
-		log.Println("WARNING: Database environment variables not set (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)")
-		log.Println("WARNING: Application will continue without database. Backup functionality will be disabled.")
-		log.Println("WARNING: To enable database, set the required environment variables and restart the application.")
+		zap.L().Warn("database environment variables not set, backup disabled")
 		return nil // Return nil to allow application to continue without database
 	}
 
@@ -75,15 +73,14 @@ func Init() error {
 	db, errConnectDb := gorm.Open(postgres.Open(postgresInfo), &gorm.Config{})
 
 	if errConnectDb != nil {
-		log.Printf("WARNING: Database connection failed: %v", errConnectDb)
-		log.Println("WARNING: Application will continue without database. Backup functionality will be disabled.")
+		zap.L().Warn("database connection failed, backup disabled", zap.Error(errConnectDb))
 		return nil // Return nil to allow application to continue without database
 	}
 
 	// Extract the underlying sql.DB to configure connection pooling
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Printf("WARNING: Failed to extract sql.DB for pooling: %v", err)
+		zap.L().Warn("failed to extract sql.DB for pooling", zap.Error(err))
 	} else {
 		// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
 		sqlDB.SetMaxIdleConns(10)
@@ -97,8 +94,7 @@ func Init() error {
 	errTestDb := db.Exec("SELECT 1").Error
 
 	if errTestDb != nil {
-		log.Printf("WARNING: Database connection test failed: %v", errTestDb)
-		log.Println("WARNING: Application will continue without database. Backup functionality will be disabled.")
+		zap.L().Warn("database connection test failed, backup disabled", zap.Error(errTestDb))
 		return nil // Return nil to allow application to continue without database
 	}
 
@@ -108,14 +104,13 @@ func Init() error {
 	)
 
 	if errMigration != nil {
-		log.Printf("WARNING: Database migration failed: %v", errMigration)
-		log.Println("WARNING: Application will continue without database. Backup functionality will be disabled.")
+		zap.L().Warn("database migration failed, backup disabled", zap.Error(errMigration))
 		return nil // Return nil to allow application to continue without database
 	}
 
 	Db = db
 
-	log.Println("Successfully connected to database with pooling configured!")
+	zap.L().Info("connected to database with pooling configured")
 
 	return nil
 }

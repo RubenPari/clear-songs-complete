@@ -2,11 +2,12 @@ package track
 
 import (
 	"context"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const artistAIGenreKeyPrefix = "artist_ai_genre:"
@@ -38,7 +39,7 @@ func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Cont
 	var s string
 	found, err := uc.cacheRepo.Get(ctx, artistAIGenreCacheKey(artistKey), &s)
 	if err != nil {
-		log.Printf("warning: artist genre cache read key=%q: %v", artistKey, err)
+		zap.L().Warn("artist genre cache read failed", zap.String("artist_key", artistKey), zap.Error(err))
 		return "", false
 	}
 	if !found || strings.TrimSpace(s) == "" {
@@ -53,6 +54,6 @@ func (uc *GetTrackSummaryUseCase) setCachedArtistCanonicalGenre(ctx context.Cont
 		return
 	}
 	if err := uc.cacheRepo.Set(ctx, artistAIGenreCacheKey(artistKey), canonical, artistAIGenreCacheTTL()); err != nil {
-		log.Printf("warning: artist genre cache write key=%q: %v", artistKey, err)
+		zap.L().Warn("artist genre cache write failed", zap.String("artist_key", artistKey), zap.Error(err))
 	}
 }

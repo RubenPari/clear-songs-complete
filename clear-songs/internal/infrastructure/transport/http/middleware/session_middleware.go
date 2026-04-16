@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"log"
-
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/logging"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // Session middleware.
@@ -18,14 +18,14 @@ func SessionMiddleware(
 		// Retrieve OAuth token from cache
 		token, err := cacheRepo.GetToken(ctx)
 		if err != nil {
-			log.Printf("ERROR: Failed to retrieve token from cache: %v", err)
+			logging.LoggerFromGinContext(c).Error("failed to retrieve token from cache", zap.Error(err))
 		}
 
 		// If token exists, user is authenticated
 		if token != nil {
 			// Configure the Spotify repository with the user's token
 			if err := spotifyRepo.SetAccessToken(token); err != nil {
-				log.Printf("ERROR: Failed to set access token: %v", err)
+				logging.LoggerFromGinContext(c).Error("failed to set access token", zap.Error(err))
 			} else {
 				// Store repositories in context for use by handlers and other middlewares
 				c.Set("spotifyRepository", spotifyRepo)
@@ -35,7 +35,7 @@ func SessionMiddleware(
 			// Log when token is not found (for debugging)
 			// Only log for non-auth endpoints to avoid spam
 			if c.Request.URL.Path != "/auth/is-auth" {
-				log.Printf("DEBUG: No token found in cache for path: %s", c.Request.URL.Path)
+				logging.LoggerFromGinContext(c).Debug("no token found in cache")
 			}
 		}
 

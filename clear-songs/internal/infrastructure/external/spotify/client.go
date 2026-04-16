@@ -3,11 +3,11 @@ package spotify
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/zmb3/spotify"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -114,7 +114,7 @@ func (r *SpotifyRepositoryImpl) GetAllUserTracks(ctx context.Context) ([]spotify
 		offset += limit
 	}
 
-	log.Printf("Retrieved %d total tracks", len(allTracks))
+	zap.L().Info("retrieved user tracks", zap.Int("count", len(allTracks)))
 	return allTracks, nil
 }
 
@@ -165,7 +165,7 @@ func (r *SpotifyRepositoryImpl) DeleteTracksFromLibrary(ctx context.Context, tra
 			return err
 		}
 
-		log.Printf("Deleted tracks from offset: %d", offset)
+		zap.L().Info("deleted track batch", zap.Int("offset", offset), zap.Int("batch_size", len(batch)))
 		offset += limit
 	}
 
@@ -318,7 +318,11 @@ func (r *SpotifyRepositoryImpl) GetArtists(ctx context.Context, artistIDs []spot
 
 		batch, err := client.GetArtists(artistIDs[i:end]...)
 		if err != nil {
-			log.Printf("Error fetching artists batch [%d:%d]: %v", i, end, err)
+			zap.L().Error("error fetching artists batch",
+				zap.Int("start", i),
+				zap.Int("end", end),
+				zap.Error(err),
+			)
 			return nil, err
 		}
 

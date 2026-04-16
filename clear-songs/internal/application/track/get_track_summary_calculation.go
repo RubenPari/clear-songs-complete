@@ -2,13 +2,13 @@ package track
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 )
 
 // artistData holds artist information for summary calculation.
@@ -79,7 +79,7 @@ func (uc *GetTrackSummaryUseCase) fetchArtistDetails(ctx context.Context, artist
 
 	artists, err := uc.spotifyRepo.GetArtists(ctx, artistIDs)
 	if err != nil {
-		log.Printf("Error batch fetching artists: %v", err)
+		zap.L().Warn("error batch fetching artists", zap.Error(err))
 		return artistDetails
 	}
 
@@ -123,10 +123,10 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	}
 
 	if len(needsAI) > 0 && uc.aiRepo != nil {
-		log.Printf("[genre] AI batch: resolving %d artist(s) without Spotify-mappable genres", len(needsAI))
+		zap.L().Info("resolving AI genres", zap.Int("artist_count", len(needsAI)))
 		rawMap, err := uc.aiRepo.ResolveArtistGenres(ctx, needsAI)
 		if err != nil {
-			log.Printf("[genre] AI batch: ERROR %v — artists left unresolved", err)
+			zap.L().Warn("AI genre batch failed", zap.Error(err))
 			for _, l := range needsAI {
 				resolvedByKey[l.Key] = ""
 			}
@@ -175,16 +175,20 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 // Applies aigenre result.
 func (uc *GetTrackSummaryUseCase) applyAIGenreResult(ctx context.Context, artistName, mapKey, aiRaw string) string {
 	if aiRaw == "" {
-		log.Printf("[genre] AI fallback: empty RAW artist=%q", artistName)
+		zap.L().Debug("AI fallback empty genre", zap.String("artist", artistName))
 		return ""
 	}
 	normalized := domainTrack.NormalizeAIGenreLabel(aiRaw)
 	canonical := domainTrack.ResolveGenre([]string{normalized})
 	if canonical == "" {
-		log.Printf("[genre] AI fallback: UNMAPPED artist=%q aiRaw=%q (no keyword matched canonical mapping)", artistName, aiRaw)
+		zap.L().Debug("AI fallback unmapped genre", zap.String("artist", artistName), zap.String("ai_raw", aiRaw))
 		return ""
 	}
-	log.Printf("[genre] AI fallback: OK artist=%q aiRaw=%q canonical=%q", artistName, aiRaw, canonical)
+	zap.L().Debug("AI fallback resolved genre",
+		zap.String("artist", artistName),
+		zap.String("ai_raw", aiRaw),
+		zap.String("canonical", canonical),
+	)
 	uc.setCachedArtistCanonicalGenre(ctx, mapKey, canonical)
 	return canonical
 }

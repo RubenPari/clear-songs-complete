@@ -3,11 +3,11 @@ package track
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 )
 
 const userTracksCacheTTL = 5 * time.Minute
@@ -20,7 +20,7 @@ func getUserTracks(ctx context.Context, spotifyRepo shared.SpotifyRepository, ca
 			return cached, nil
 		}
 		if err != nil {
-			log.Printf("warning: failed to read user tracks cache: %v", err)
+			zap.L().Warn("failed to read user tracks cache", zap.Error(err))
 		}
 	}
 
@@ -31,7 +31,7 @@ func getUserTracks(ctx context.Context, spotifyRepo shared.SpotifyRepository, ca
 
 	if cacheRepo != nil {
 		if err := cacheRepo.SetUserTracks(ctx, tracks, userTracksCacheTTL); err != nil {
-			log.Printf("warning: failed to write user tracks cache: %v", err)
+			zap.L().Warn("failed to write user tracks cache", zap.Error(err))
 		}
 	}
 

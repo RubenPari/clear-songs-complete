@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/logging"
 	"github.com/gin-gonic/gin"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 )
 
 // Cache invalidation middleware.
@@ -31,7 +32,11 @@ func CacheInvalidationMiddleware() gin.HandlerFunc {
 		}
 
 		if err := invalidateByRequest(c, cacheRepo); err != nil {
-			log.Printf("warning: cache invalidation failed for %s %s: %v", c.Request.Method, c.Request.URL.Path, err)
+			logging.LoggerFromGinContext(c).Warn("cache invalidation failed",
+				zap.String("method", c.Request.Method),
+				zap.String("path", c.Request.URL.Path),
+				zap.Error(err),
+			)
 		}
 	}
 }

@@ -2,11 +2,11 @@ package track
 
 import (
 	"context"
-	"log"
 	"sort"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/internal/domain/track"
+	"go.uber.org/zap"
 )
 
 // GetTrackSummaryUseCase handles the business logic for getting track summaries
@@ -33,11 +33,11 @@ func NewGetTrackSummaryUseCase(
 func (uc *GetTrackSummaryUseCase) Execute(ctx context.Context, min, max int, genre string) ([]track.ArtistSummary, error) {
 	cacheKey := buildTrackSummaryCacheKey(min, max, genre)
 	if cached, found := uc.getCachedSummary(ctx, cacheKey); found {
-		log.Printf("[track/summary] Redis cache HIT key=%q — genre resolution and [genre] AI logs are skipped. POST /track/library-cache/invalidate then GET /track/summary again to recompute.", cacheKey)
+		zap.L().Info("track summary cache hit", zap.String("cache_key", cacheKey))
 		return cached, nil
 	}
 
-	log.Printf("[track/summary] cache MISS key=%q — computing (per-artist [genre] logs may appear)", cacheKey)
+	zap.L().Info("track summary cache miss", zap.String("cache_key", cacheKey))
 
 	tracks, err := uc.getUserTracks(ctx)
 	if err != nil {

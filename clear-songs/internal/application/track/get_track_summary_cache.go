@@ -3,10 +3,10 @@ package track
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
+	"go.uber.org/zap"
 )
 
 // Builds track summary cache key.
@@ -26,7 +26,7 @@ func (uc *GetTrackSummaryUseCase) getCachedSummary(ctx context.Context, cacheKey
 	var cached []domainTrack.ArtistSummary
 	found, err := uc.cacheRepo.Get(ctx, cacheKey, &cached)
 	if err != nil {
-		log.Printf("warning: failed to read summary cache for key %s: %v", cacheKey, err)
+		zap.L().Warn("failed to read summary cache", zap.String("cache_key", cacheKey), zap.Error(err))
 		return nil, false
 	}
 	if !found {
@@ -43,6 +43,6 @@ func (uc *GetTrackSummaryUseCase) cacheSummary(ctx context.Context, cacheKey str
 	}
 
 	if err := uc.cacheRepo.Set(ctx, cacheKey, summary, 5*time.Minute); err != nil {
-		log.Printf("warning: failed to write summary cache for key %s: %v", cacheKey, err)
+		zap.L().Warn("failed to write summary cache", zap.String("cache_key", cacheKey), zap.Error(err))
 	}
 }

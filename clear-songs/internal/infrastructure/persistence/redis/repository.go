@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/redis/go-redis/v9"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -65,10 +65,10 @@ func NewRedisCacheRepository() (*RedisCacheRepository, error) {
 	})
 	if err := pingRedisWithRetry(ctx, rdb); err != nil {
 		_ = rdb.Close()
-		log.Printf("WARNING: Redis connection failed: %v", err)
+		zap.L().Warn("Redis connection failed", zap.Error(err))
 		return nil, err
 	}
-	log.Println("Connected to Redis for caching")
+	zap.L().Info("connected to Redis for caching")
 	return &RedisCacheRepository{
 		client: rdb,
 		ctx:    ctx,
@@ -108,23 +108,23 @@ func newClientFromRedisURL(ctx context.Context, redisURL string) (*redis.Client,
 
 	rdb, err := dial(redisURL)
 	if err == nil {
-		log.Println("Connected to Redis for caching")
+		zap.L().Info("connected to Redis for caching")
 		return rdb, nil
 	}
 
 	// redis:// against a TLS-only endpoint (e.g. Upstash) often fails with EOF.
 	if strings.HasPrefix(redisURL, "redis://") {
 		alt := "rediss://" + strings.TrimPrefix(redisURL, "redis://")
-		log.Printf("WARNING: Redis REDIS_URL ping failed (%v); retrying with TLS (rediss://)", err)
+		zap.L().Warn("Redis REDIS_URL ping failed, retrying with TLS", zap.Error(err))
 		rdb2, err2 := dial(alt)
 		if err2 == nil {
-			log.Println("Connected to Redis for caching")
+			zap.L().Info("connected to Redis for caching")
 			return rdb2, nil
 		}
 		return nil, fmt.Errorf("redis: %w; rediss fallback: %w", err, err2)
 	}
 
-	log.Printf("WARNING: Redis connection failed: %v", err)
+	zap.L().Warn("Redis connection failed", zap.Error(err))
 	return nil, err
 }
 
@@ -235,7 +235,7 @@ func (r *RedisCacheRepository) Get(ctx context.Context, key string, target inter
 	if r.client == nil {
 		return false, nil
 	}
-	
+
 	val, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
 		if err == redis.Nil {
@@ -243,11 +243,11 @@ func (r *RedisCacheRepository) Get(ctx context.Context, key string, target inter
 		}
 		return false, err
 	}
-	
+
 	if err := json.Unmarshal(val, target); err != nil {
 		return false, err
 	}
-	
+
 	return true, nil
 }
 
@@ -256,12 +256,12 @@ func (r *RedisCacheRepository) Set(ctx context.Context, key string, value interf
 	if r.client == nil {
 		return nil // Silently fail if Redis is not available
 	}
-	
+
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
-	
+
 	return r.client.Set(ctx, key, data, ttl).Err()
 }
 

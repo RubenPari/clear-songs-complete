@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/google/generative-ai-go/genai"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 	"google.golang.org/api/option"
@@ -95,7 +95,7 @@ func NewGeminiRepository(ctx context.Context, apiKey string) (*GeminiRepository,
 	}
 
 	model := geminiModelFromEnv()
-	log.Printf("Gemini genre fallback: using model %q (override with GEMINI_MODEL)", model)
+	zap.L().Info("Gemini genre fallback configured", zap.String("model", model))
 
 	return &GeminiRepository{
 		client: client,
@@ -171,7 +171,10 @@ func (r *GeminiRepository) resolveChunkWithFallback(ctx context.Context, chunk [
 
 	out, err := r.resolveChunkBatch(ctx, chunk)
 	if err != nil {
-		log.Printf("[genre] Gemini batch failed (%d artists): %v — trying single calls", len(chunk), err)
+		zap.L().Warn("Gemini batch failed, trying single calls",
+			zap.Int("artist_count", len(chunk)),
+			zap.Error(err),
+		)
 		return r.resolveChunkSingles(ctx, chunk)
 	}
 	if out == nil {
@@ -182,7 +185,7 @@ func (r *GeminiRepository) resolveChunkWithFallback(ctx context.Context, chunk [
 		if !ok || strings.TrimSpace(g) == "" {
 			g2, e := r.resolveArtistGenreSingle(ctx, l.Name)
 			if e != nil {
-				log.Printf("[genre] batch incomplete key=%q: %v", l.Key, e)
+				zap.L().Warn("Gemini batch incomplete item", zap.String("key", l.Key), zap.Error(e))
 				out[l.Key] = ""
 				continue
 			}
@@ -197,7 +200,11 @@ func (r *GeminiRepository) resolveOne(ctx context.Context, l shared.AIArtistLook
 	m := make(map[string]string, 1)
 	g, err := r.resolveArtistGenreSingle(ctx, l.Name)
 	if err != nil {
-		log.Printf("[genre] ERROR key=%q artist=%q: %v", l.Key, l.Name, err)
+		zap.L().Warn("Gemini resolve artist genre failed",
+			zap.String("key", l.Key),
+			zap.String("artist", l.Name),
+			zap.Error(err),
+		)
 		m[l.Key] = ""
 		return m
 	}
@@ -211,7 +218,7 @@ func (r *GeminiRepository) resolveChunkSingles(ctx context.Context, chunk []shar
 	for _, l := range chunk {
 		g, err := r.resolveArtistGenreSingle(ctx, l.Name)
 		if err != nil {
-			log.Printf("[genre] single fallback ERROR key=%q: %v", l.Key, err)
+			zap.L().Warn("Gemini single fallback failed", zap.String("key", l.Key), zap.Error(err))
 			out[l.Key] = ""
 			continue
 		}

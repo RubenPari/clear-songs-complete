@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/application/auth"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -66,13 +67,12 @@ func (ac *AuthController) Callback(c *gin.Context) {
 	if err != nil {
 		var re *oauth2.RetrieveError
 		if errors.As(err, &re) {
-			log.Printf(
-				"ERROR: OAuth callback failed [oauth2_exchange] error_code=%q error_description=%q",
-				re.ErrorCode,
-				re.ErrorDescription,
+			logging.LoggerFromGinContext(c).Error("OAuth callback failed",
+				zap.String("error_code", re.ErrorCode),
+				zap.String("error_description", re.ErrorDescription),
 			)
 		} else {
-			log.Printf("ERROR: OAuth callback failed: %v", err)
+			logging.LoggerFromGinContext(c).Error("OAuth callback failed", zap.Error(err))
 		}
 		ac.JSONInternalError(c, "Error authenticating user")
 		return

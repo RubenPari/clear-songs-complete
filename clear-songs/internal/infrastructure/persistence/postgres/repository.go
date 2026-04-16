@@ -2,11 +2,11 @@ package postgres
 
 import (
 	"errors"
-	"log"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres/models"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -44,7 +44,7 @@ func NewPostgresRepository(db *gorm.DB) shared.DatabaseRepository {
 
 // Save tracks backup.
 func (r *PostgresRepository) SaveTracksBackup(tracks []spotifyAPI.PlaylistTrack) error {
-	log.Println("Saving tracks backup started")
+	zap.L().Info("saving tracks backup started", zap.Int("count", len(tracks)))
 
 	for _, trackPlaylist := range tracks {
 		trackID := trackPlaylist.Track.ID.String()
@@ -70,7 +70,7 @@ func (r *PostgresRepository) SaveTracksBackup(tracks []spotifyAPI.PlaylistTrack)
 
 // Save full tracks backup.
 func (r *PostgresRepository) SaveFullTracksBackup(tracks []spotifyAPI.FullTrack) error {
-	log.Println("Saving full tracks backup started")
+	zap.L().Info("saving full tracks backup started", zap.Int("count", len(tracks)))
 
 	for _, t := range tracks {
 		trackID := t.ID.String()
@@ -101,13 +101,13 @@ func (r *PostgresRepository) saveToDB(track models.TrackDB) error {
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("Error querying existing track: %v\n", result.Error)
+			zap.L().Error("error querying existing track", zap.Error(result.Error))
 			return result.Error
 		}
 
 		// Track doesn't exist, insert it
 		if err := r.db.Create(&track).Error; err != nil {
-			log.Printf("Error inserting track: %v - %v\n", track, err)
+			zap.L().Error("error inserting track", zap.String("track_id", track.Id), zap.Error(err))
 			return err
 		}
 	}
@@ -119,13 +119,13 @@ type NoOpDatabaseRepository struct{}
 
 // Save tracks backup.
 func (n *NoOpDatabaseRepository) SaveTracksBackup(tracks []spotifyAPI.PlaylistTrack) error {
-	log.Println("WARNING: Database not available, skipping track backup")
+	zap.L().Warn("database not available, skipping track backup")
 	return nil // No-op
 }
 
 // Save full tracks backup.
 func (n *NoOpDatabaseRepository) SaveFullTracksBackup(tracks []spotifyAPI.FullTrack) error {
-	log.Println("WARNING: Database not available, skipping track backup")
+	zap.L().Warn("database not available, skipping track backup")
 	return nil // No-op
 }
 
