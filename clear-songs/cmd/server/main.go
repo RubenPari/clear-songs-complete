@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -67,14 +69,29 @@ func main() {
 	if port == "" {
 		port = "3000"
 	}
+	// Long summaries (many sequential Gemini calls) can exceed 2m; default write timeout 6m.
+	writeSec := 360
+	if s := strings.TrimSpace(os.Getenv("HTTP_WRITE_TIMEOUT_SEC")); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n >= 30 && n <= 3600 {
+			writeSec = n
+		}
+	}
+	readSec := writeSec
+	if s := strings.TrimSpace(os.Getenv("HTTP_READ_TIMEOUT_SEC")); s != "" {
+		if n, err := strconv.Atoi(s); err == nil && n >= 30 && n <= 3600 {
+			readSec = n
+		}
+	}
+	timeoutDur := func(sec int) time.Duration { return time.Duration(sec) * time.Second }
+
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: router,
-		// Good practice: enforce timeouts for server
-		ReadTimeout:  120 * time.Second,
-		WriteTimeout: 120 * time.Second,
+		ReadTimeout:  timeoutDur(readSec),
+		WriteTimeout: timeoutDur(writeSec),
 		IdleTimeout:  120 * time.Second,
 	}
+	log.Printf("HTTP server timeouts: read=%v write=%v (override with HTTP_READ_TIMEOUT_SEC / HTTP_WRITE_TIMEOUT_SEC)", srv.ReadTimeout, srv.WriteTimeout)
 
 	// Run server in a goroutine so that it doesn't block
 	go func() {
