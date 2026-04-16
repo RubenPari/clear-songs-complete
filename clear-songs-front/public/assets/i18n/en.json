@@ -23,8 +23,6 @@
     "TITLE": "Library Overview",
     "SUBTITLE": "Manage and analyze your Spotify library",
     "REFRESH": "Refresh",
-    "DEBUG_GENRES_JSON": "Export genres (JSON)",
-    "DEBUG_GENRES_ERROR": "Failed to export artist genres",
     "TOTAL_ARTISTS": "Total Artists",
     "TOTAL_TRACKS": "Total Tracks",
     "AVG_TRACKS": "Avg Tracks/Artist",

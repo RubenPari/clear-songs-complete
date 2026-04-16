@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ArtistGenresDebugEntry, ArtistSummary, Track } from '../models/artist.model';
+import { ArtistSummary, Track } from '../models/artist.model';
 import { ApiResponse } from '../models/api-response.model';
 import { buildRangeParams } from '../utils/http-params.helper';
 import { TrackStore } from '../stores/track.store';
@@ -28,14 +28,6 @@ export class TrackService {
       const params = buildRangeParams(deps.min(), deps.max(), deps.genre());
       return `${this.apiUrl}/summary?${params.toString()}`;
     });
-  }
-
-  /** Full library: every primary artist with raw Spotify `genres` (for mapping/debug). */
-  // Fetches artist genres debug.
-  getArtistGenresDebug(): Observable<ApiResponse<ArtistGenresDebugEntry[]>> {
-    return this.http.get<ApiResponse<ArtistGenresDebugEntry[]>>(
-      `${this.apiUrl}/debug/artist-genres`
-    );
   }
 
   /** Clears Redis user-tracks + track-summary caches; call before reloading the dashboard summary. */

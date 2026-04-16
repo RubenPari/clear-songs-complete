@@ -23,8 +23,6 @@
     "TITLE": "Panoramica Libreria",
     "SUBTITLE": "Gestisci e analizza la tua libreria Spotify",
     "REFRESH": "Aggiorna",
-    "DEBUG_GENRES_JSON": "Esporta generi (JSON)",
-    "DEBUG_GENRES_ERROR": "Esportazione generi non riuscita",
     "TOTAL_ARTISTS": "Artisti Totali",
     "TOTAL_TRACKS": "Brani Totali",
     "AVG_TRACKS": "Media Brani/Artista",
