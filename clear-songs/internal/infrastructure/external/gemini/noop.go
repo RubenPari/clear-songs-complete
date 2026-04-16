@@ -19,12 +19,18 @@ func NewNoOpAIRepository() *NoOpAIRepository {
 	return &NoOpAIRepository{}
 }
 
-// ResolveArtistGenre always returns empty string (no-op)
-func (n *NoOpAIRepository) ResolveArtistGenre(ctx context.Context, artistName string) (string, error) {
-	noOpGenreWarn.Do(func() {
-		log.Printf("[genre] GEMINI_API_KEY not set or Gemini init failed — AI fallback is a no-op (set GEMINI_API_KEY in the container env, not only .env file if /app/.env is missing)")
-	})
-	return "", nil
+// ResolveArtistGenres returns empty genre for each key (no-op).
+func (n *NoOpAIRepository) ResolveArtistGenres(ctx context.Context, lookups []shared.AIArtistLookup) (map[string]string, error) {
+	if len(lookups) > 0 {
+		noOpGenreWarn.Do(func() {
+			log.Printf("[genre] GEMINI_API_KEY not set or Gemini init failed — AI fallback is a no-op (set GEMINI_API_KEY in the container env, not only .env file if /app/.env is missing)")
+		})
+	}
+	out := make(map[string]string, len(lookups))
+	for _, l := range lookups {
+		out[l.Key] = ""
+	}
+	return out, nil
 }
 
 // Ensure NoOpAIRepository implements AIRepository
