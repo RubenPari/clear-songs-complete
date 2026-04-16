@@ -3,12 +3,33 @@ package gemini
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"regexp"
 	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
+
+// Redact Google API key in error strings (full request URL may appear in errors).
+var googleAPIKeyQuery = regexp.MustCompile(`([?&])key=[A-Za-z0-9_-]+`)
+
+func redactGoogleAPIKeyInString(msg string) string {
+	return googleAPIKeyQuery.ReplaceAllString(msg, "${1}key=REDACTED")
+}
+
+// DefaultGeminiModel is used when GEMINI_MODEL is unset. gemini-2.0-flash is not
+// available to new API users (404); see https://ai.google.dev/gemini-api/docs/models
+const DefaultGeminiModel = "gemini-2.5-flash"
+
+func geminiModelFromEnv() string {
+	if m := strings.TrimSpace(os.Getenv("GEMINI_MODEL")); m != "" {
+		return m
+	}
+	return DefaultGeminiModel
+}
 
 // GeminiRepository implements AIRepository using Google's Gemini API
 type GeminiRepository struct {
@@ -23,9 +44,12 @@ func NewGeminiRepository(ctx context.Context, apiKey string) (*GeminiRepository,
 		return nil, fmt.Errorf("failed to create Gemini client: %w", err)
 	}
 
+	model := geminiModelFromEnv()
+	log.Printf("Gemini genre fallback: using model %q (override with GEMINI_MODEL)", model)
+
 	return &GeminiRepository{
 		client: client,
-		model:  "gemini-2.0-flash",
+		model:  model,
 	}, nil
 }
 
@@ -41,7 +65,7 @@ func (r *GeminiRepository) ResolveArtistGenre(ctx context.Context, artistName st
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		return "", fmt.Errorf("Gemini API error for artist %s: %w", artistName, err)
+		return "", fmt.Errorf("Gemini API error for artist %s: %s", artistName, redactGoogleAPIKeyInString(err.Error()))
 	}
 
 	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {

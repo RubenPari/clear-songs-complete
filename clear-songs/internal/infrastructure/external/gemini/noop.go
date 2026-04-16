@@ -2,6 +2,8 @@ package gemini
 
 import (
 	"context"
+	"log"
+	"sync"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 )
@@ -10,6 +12,8 @@ import (
 // used when Gemini API key is not configured
 type NoOpAIRepository struct{}
 
+var noOpGenreWarn sync.Once
+
 // NewNoOpAIRepository creates a new no-op AI repository
 func NewNoOpAIRepository() *NoOpAIRepository {
 	return &NoOpAIRepository{}
@@ -17,6 +21,9 @@ func NewNoOpAIRepository() *NoOpAIRepository {
 
 // ResolveArtistGenre always returns empty string (no-op)
 func (n *NoOpAIRepository) ResolveArtistGenre(ctx context.Context, artistName string) (string, error) {
+	noOpGenreWarn.Do(func() {
+		log.Printf("[genre] GEMINI_API_KEY not set or Gemini init failed — AI fallback is a no-op (set GEMINI_API_KEY in the container env, not only .env file if /app/.env is missing)")
+	})
 	return "", nil
 }
 
