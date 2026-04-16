@@ -12,6 +12,10 @@
     "FEATURE_ARTIST_DESC": "Delete tracks from specific artists",
     "FEATURE_PLAYLIST_TITLE": "Playlist Cleanup",
     "FEATURE_PLAYLIST_DESC": "Clear playlists efficiently",
+    "FEATURE_STATS_TITLE": "Library Stats",
+    "FEATURE_STATS_DESC": "Analyze your music collection",
+    "FEATURE_BACKUP_TITLE": "Safe Backup",
+    "FEATURE_BACKUP_DESC": "Auto-backup before deletion",
     "CONTINUE_SPOTIFY": "Continue with Spotify",
     "DISCLAIMER": "We only access your library to help you manage it. All deletions are backed up."
   },

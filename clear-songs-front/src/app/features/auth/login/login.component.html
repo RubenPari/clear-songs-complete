@@ -13,49 +13,49 @@
           <div class="logo-ring"></div>
           <i class="bi bi-music-note-beamed logo-icon text-primary"></i>
         </div>
-        <h1>Clear Songs</h1>
-        <p class="tagline">Manage your Spotify library efficiently</p>
+        <h1>{{ 'LOGIN.TITLE' | translate }}</h1>
+        <p class="tagline">{{ 'LOGIN.TAGLINE' | translate }}</p>
       </div>
 
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon"><i class="bi bi-trash3"></i></div>
           <div class="feature-content">
-            <h6>Bulk Delete</h6>
-            <p>Remove tracks by artist or range</p>
+            <h6>{{ 'LOGIN.FEATURE_ARTIST_TITLE' | translate }}</h6>
+            <p>{{ 'LOGIN.FEATURE_ARTIST_DESC' | translate }}</p>
           </div>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><i class="bi bi-bar-chart"></i></div>
           <div class="feature-content">
-            <h6>Library Stats</h6>
-            <p>Analyze your music collection</p>
+            <h6>{{ 'LOGIN.FEATURE_STATS_TITLE' | translate }}</h6>
+            <p>{{ 'LOGIN.FEATURE_STATS_DESC' | translate }}</p>
           </div>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><i class="bi bi-collection"></i></div>
           <div class="feature-content">
-            <h6>Playlists</h6>
-            <p>Clean up playlists easily</p>
+            <h6>{{ 'LOGIN.FEATURE_PLAYLIST_TITLE' | translate }}</h6>
+            <p>{{ 'LOGIN.FEATURE_PLAYLIST_DESC' | translate }}</p>
           </div>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
           <div class="feature-content">
-            <h6>Safe Backup</h6>
-            <p>Auto-backup before deletion</p>
+            <h6>{{ 'LOGIN.FEATURE_BACKUP_TITLE' | translate }}</h6>
+            <p>{{ 'LOGIN.FEATURE_BACKUP_DESC' | translate }}</p>
           </div>
         </div>
       </div>
 
       <button class="spotify-login-btn" (click)="loginWithSpotify()">
         <i class="bi bi-spotify"></i>
-        Continue with Spotify
+        {{ 'LOGIN.CONTINUE_SPOTIFY' | translate }}
       </button>
 
       <div class="disclaimer">
         <i class="bi bi-info-circle"></i>
-        <span>You'll be redirected to Spotify to authorize Clear Songs to access your library.</span>
+        <span>{{ 'LOGIN.DISCLAIMER' | translate }}</span>
       </div>
     </div>
   </div>

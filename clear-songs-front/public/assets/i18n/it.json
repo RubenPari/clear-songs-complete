@@ -12,6 +12,10 @@
     "FEATURE_ARTIST_DESC": "Elimina brani di artisti specifici",
     "FEATURE_PLAYLIST_TITLE": "Pulizia Playlist",
     "FEATURE_PLAYLIST_DESC": "Svuota le playlist in modo efficiente",
+    "FEATURE_STATS_TITLE": "Statistiche Libreria",
+    "FEATURE_STATS_DESC": "Analizza la tua raccolta musicale",
+    "FEATURE_BACKUP_TITLE": "Backup Sicuro",
+    "FEATURE_BACKUP_DESC": "Backup automatico prima dell'eliminazione",
     "CONTINUE_SPOTIFY": "Continua con Spotify",
     "DISCLAIMER": "Accediamo alla tua libreria solo per aiutarti a gestirla. Tutte le eliminazioni vengono salvate."
   },
