@@ -172,6 +172,36 @@ export class DashboardComponent {
     return Math.ceil(this.filteredArtists().length / this.itemsPerPage());
   });
 
+  visiblePages = computed<(number | string)[]>(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+
+    if (total <= 4) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    if (current <= 3) {
+      return [1, 2, 3, '...', total];
+    }
+
+    const start = Math.min(current, Math.max(1, total - 2));
+    const pages: (number | string)[] = [start];
+
+    if (start + 1 <= total) {
+      pages.push(start + 1);
+    }
+
+    if (start + 2 <= total) {
+      pages.push(start + 2);
+    }
+
+    if (pages[pages.length - 1] !== total) {
+      pages.push('...', total);
+    }
+
+    return pages;
+  });
+
   // Loads track summary.
   loadTrackSummary(): void {
     this.trackService.invalidateLibraryCache().subscribe({
@@ -282,6 +312,9 @@ export class DashboardComponent {
 
   // Changes page.
   changePage(page: number): void {
+    if (page < 1 || page > this.totalPages()) {
+      return;
+    }
     this.currentPage.set(page);
   }
 

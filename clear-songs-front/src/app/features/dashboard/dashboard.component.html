@@ -313,9 +313,13 @@
                           <span>{{ 'DASHBOARD.PREVIOUS' | translate }}</span>
                         </a>
                       </li>
-                      @for (page of [].constructor(totalPages()); track $index) {
-                        <li class="page-item-modern" [class.active]="currentPage() === $index + 1">
-                          <a class="page-link-modern" role="button" tabindex="0" (click)="changePage($index + 1)" (keyup.enter)="changePage($index + 1)">{{ $index + 1 }}</a>
+                      @for (page of visiblePages(); track page) {
+                        <li class="page-item-modern" [class.active]="page !== '...' && currentPage() === +page" [class.disabled]="page === '...'">
+                          @if (page === '...') {
+                            <span class="page-link-modern">...</span>
+                          } @else {
+                            <a class="page-link-modern" role="button" tabindex="0" (click)="changePage(+page)" (keyup.enter)="changePage(+page)">{{ page }}</a>
+                          }
                         </li>
                       }
                       <li class="page-item-modern" [class.disabled]="currentPage() === totalPages()">
