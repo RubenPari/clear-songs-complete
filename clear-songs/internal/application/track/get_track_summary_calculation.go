@@ -3,11 +3,9 @@ package track
 import (
 	"context"
 	"log"
-	"os"
-	"strconv"
 	"strings"
-	"time"
 
+	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
 	spotifyAPI "github.com/zmb3/spotify"
@@ -101,15 +99,57 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	min, max int,
 	genre string,
 ) []domainTrack.ArtistSummary {
+	resolvedByKey := make(map[string]string)
+	var needsAI []shared.AIArtistLookup
+
+	for mapKey, data := range artistMap {
+		if !passesRangeFilter(data.count, min, max) {
+			continue
+		}
+
+		_, genres := extractArtistMetadata(data.id, artistDetails)
+		if g := domainTrack.ResolveGenre(genres); g != "" {
+			resolvedByKey[mapKey] = g
+			continue
+		}
+
+		if cached, ok := uc.getCachedArtistCanonicalGenre(ctx, mapKey); ok {
+			resolvedByKey[mapKey] = cached
+			continue
+		}
+
+		needsAI = append(needsAI, shared.AIArtistLookup{Key: mapKey, Name: data.name})
+	}
+
+	if len(needsAI) > 0 && uc.aiRepo != nil {
+		log.Printf("[genre] AI batch: resolving %d artist(s) without Spotify-mappable genres", len(needsAI))
+		rawMap, err := uc.aiRepo.ResolveArtistGenres(ctx, needsAI)
+		if err != nil {
+			log.Printf("[genre] AI batch: ERROR %v — artists left unresolved", err)
+			for _, l := range needsAI {
+				resolvedByKey[l.Key] = ""
+			}
+		} else {
+			for _, l := range needsAI {
+				aiRaw := ""
+				if rawMap != nil {
+					aiRaw = rawMap[l.Key]
+				}
+				resolvedByKey[l.Key] = uc.applyAIGenreResult(ctx, l.Name, l.Key, aiRaw)
+			}
+		}
+	}
+
 	summary := make([]domainTrack.ArtistSummary, 0, len(artistMap))
 
-	for _, data := range artistMap {
+	for mapKey, data := range artistMap {
 		if !passesRangeFilter(data.count, min, max) {
 			continue
 		}
 
 		imageURL, genres := extractArtistMetadata(data.id, artistDetails)
-		resolvedGenre := uc.resolveGenreWithFallback(ctx, data.name, genres)
+		resolvedGenre := resolvedByKey[mapKey]
+
 		if !domainTrack.MatchesGenreFilter(genres, resolvedGenre, genre) {
 			continue
 		}
@@ -129,6 +169,22 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	}
 
 	return summary
+}
+
+func (uc *GetTrackSummaryUseCase) applyAIGenreResult(ctx context.Context, artistName, mapKey, aiRaw string) string {
+	if aiRaw == "" {
+		log.Printf("[genre] AI fallback: empty RAW artist=%q", artistName)
+		return ""
+	}
+	normalized := domainTrack.NormalizeAIGenreLabel(aiRaw)
+	canonical := domainTrack.ResolveGenre([]string{normalized})
+	if canonical == "" {
+		log.Printf("[genre] AI fallback: UNMAPPED artist=%q aiRaw=%q (no keyword matched canonical mapping)", artistName, aiRaw)
+		return ""
+	}
+	log.Printf("[genre] AI fallback: OK artist=%q aiRaw=%q canonical=%q", artistName, aiRaw, canonical)
+	uc.setCachedArtistCanonicalGenre(ctx, mapKey, canonical)
+	return canonical
 }
 
 // passesRangeFilter checks if the count of tracks by an artist falls within the specified range.
@@ -151,54 +207,3 @@ func extractArtistMetadata(artistID string, artistDetails map[string]*spotifyAPI
 
 	return "", nil
 }
-
-// resolveGenreWithFallback attempts to resolve the genre using the primary method, and falls back to AI if needed.
-func (uc *GetTrackSummaryUseCase) resolveGenreWithFallback(ctx context.Context, artistName string, genres []string) string {
-	resolvedGenre := domainTrack.ResolveGenre(genres)
-	if resolvedGenre != "" {
-		return resolvedGenre
-	}
-	if uc.aiRepo == nil {
-		return ""
-	}
-
-	aiCtx, cancel := context.WithTimeout(ctx, geminiRequestTimeout())
-	defer cancel()
-
-	log.Printf("[genre] AI fallback: calling API artist=%q spotifyGenres=%v", artistName, genres)
-
-	aiGenre, err := uc.aiRepo.ResolveArtistGenre(aiCtx, artistName)
-	if err != nil {
-		log.Printf("[genre] AI fallback: ERROR artist=%q err=%v", artistName, err)
-		return ""
-	}
-
-	if aiGenre == "" {
-		log.Printf("[genre] AI fallback: empty response artist=%q", artistName)
-		return ""
-	}
-
-	normalized := domainTrack.NormalizeAIGenreLabel(aiGenre)
-	canonical := domainTrack.ResolveGenre([]string{normalized})
-	if canonical == "" {
-		log.Printf("[genre] AI fallback: UNMAPPED artist=%q aiRaw=%q (no keyword matched canonical mapping)", artistName, aiGenre)
-		return ""
-	}
-	log.Printf("[genre] AI fallback: OK artist=%q aiRaw=%q canonical=%q", artistName, aiGenre, canonical)
-	return canonical
-}
-
-// geminiRequestTimeout bounds each Gemini call (default 25s; env GEMINI_REQUEST_TIMEOUT_SEC 5–120).
-func geminiRequestTimeout() time.Duration {
-	const defaultSec = 25
-	s := strings.TrimSpace(os.Getenv("GEMINI_REQUEST_TIMEOUT_SEC"))
-	if s == "" {
-		return defaultSec * time.Second
-	}
-	sec, err := strconv.Atoi(s)
-	if err != nil || sec < 5 || sec > 120 {
-		return defaultSec * time.Second
-	}
-	return time.Duration(sec) * time.Second
-}
-
