@@ -1,6 +1,9 @@
 package track
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestResolveGenre(t *testing.T) {
 	tests := []struct {
@@ -55,5 +58,25 @@ func TestResolveGenre(t *testing.T) {
 				t.Errorf("ResolveGenre(%v) = %q, want %q", tt.genres, result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestNormalizeAIGenreLabel(t *testing.T) {
+	t.Parallel()
+	if got := NormalizeAIGenreLabel("hip-hop"); !strings.Contains(got, "hip hop") {
+		t.Errorf("NormalizeAIGenreLabel(hip-hop) = %q, want hip hop substring", got)
+	}
+}
+
+func TestMatchesGenreFilter(t *testing.T) {
+	t.Parallel()
+	if !MatchesGenreFilter([]string{"contemporary r&b", "barbadian pop"}, "R&B", "Pop") {
+		t.Error("Pop filter should match when any Spotify tag resolves to Pop")
+	}
+	if MatchesGenreFilter([]string{"classic rock"}, "Rock", "Pop") {
+		t.Error("Pop filter should not match when no tag is Pop")
+	}
+	if !MatchesGenreFilter(nil, "Pop", "Pop") {
+		t.Error("filter should match resolved aggregate when tags empty")
 	}
 }

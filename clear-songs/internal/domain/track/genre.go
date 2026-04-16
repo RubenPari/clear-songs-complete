@@ -27,7 +27,7 @@ var genreMapping = []struct {
 	{
 		Canonical: "Hip Hop",
 		Keywords: []string{
-			"hip hop", "rap", "trap", "boom bap", "gangster",
+			"hip hop", "hip-hop", "rap", "trap", "boom bap", "gangster",
 			"grime", "drill", "horrorcore", "crunk", "bounce",
 			"christian hip hop", "country hip hop", "boogie",
 		},
@@ -80,7 +80,7 @@ var genreMapping = []struct {
 	{
 		Canonical: "Classical",
 		Keywords: []string{
-			"classical", "opera", "score", "soundtrack",
+			"classical", "opera", "score", "soundtrack", "cinematic",
 		},
 	},
 	{
@@ -104,7 +104,7 @@ var genreMapping = []struct {
 	{
 		Canonical: "Soul",
 		Keywords: []string{
-			"soul",
+			"gospel", "soul",
 		},
 	},
 	{
@@ -140,4 +140,42 @@ func ResolveGenre(spotifyGenres []string) string {
 	}
 
 	return ""
+}
+
+// NormalizeAIGenreLabel normalizes Gemini free-text before keyword matching (hyphens, spacing).
+func NormalizeAIGenreLabel(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	s = strings.ReplaceAll(s, "hip-hop", "hip hop")
+	s = strings.ReplaceAll(s, "–", "-")
+	return strings.TrimSpace(s)
+}
+
+// ResolveSingleGenre maps one Spotify genre string through the same keyword rules as ResolveGenre.
+func ResolveSingleGenre(spotifyGenre string) string {
+	g := strings.ToLower(strings.TrimSpace(spotifyGenre))
+	if g == "" {
+		return ""
+	}
+	for _, mapping := range genreMapping {
+		for _, keyword := range mapping.Keywords {
+			if strings.Contains(g, keyword) {
+				return mapping.Canonical
+			}
+		}
+	}
+	return ""
+}
+
+// MatchesGenreFilter is true if no filter is set, if any Spotify tag resolves to requestedCanonical,
+// or if the aggregate resolved genre (e.g. from AI) matches.
+func MatchesGenreFilter(spotifyGenres []string, resolvedAggregate, requestedCanonical string) bool {
+	if requestedCanonical == "" {
+		return true
+	}
+	for _, g := range spotifyGenres {
+		if r := ResolveSingleGenre(g); r != "" && strings.EqualFold(r, requestedCanonical) {
+			return true
+		}
+	}
+	return strings.EqualFold(resolvedAggregate, requestedCanonical)
 }
