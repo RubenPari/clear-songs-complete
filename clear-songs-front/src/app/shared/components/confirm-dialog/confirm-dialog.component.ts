@@ -48,10 +48,12 @@ export class ConfirmDialogComponent {
 
   public activeModal = inject(NgbActiveModal);
 
+  // On cancel.
   onCancel(): void {
     this.activeModal.close(false);
   }
 
+  // On confirm.
   onConfirm(): void {
     this.activeModal.close(true);
   }

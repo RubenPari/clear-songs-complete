@@ -17,6 +17,7 @@ export function modalResult$<T>(modalRef: NgbModalRef, dismissedValue: T): Obser
   return from(modalRef.result as Promise<T>).pipe(catchError(() => of(dismissedValue)));
 }
 
+// Opens confirm dialog.
 export function openConfirmDialog(
   modalService: NgbModal,
   options: ConfirmDialogOptions

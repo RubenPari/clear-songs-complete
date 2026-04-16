@@ -14,15 +14,18 @@ export class PlaylistService {
   private http = inject(HttpClient);
   private playlistStore = inject(PlaylistStore);
 
+  // Fetches user playlists resource.
   getUserPlaylistsResource() {
     return httpResource<ApiResponse<UserPlaylist[]>>(() => `${this.apiUrl}/list`);
   }
 
+  // Deletes all playlist tracks.
   deleteAllPlaylistTracks(playlistId: string): Observable<ApiResponse> {
     const params = new HttpParams().set('id', playlistId);
     return this.http.delete<ApiResponse>(`${this.apiUrl}/delete-tracks`, { params });
   }
 
+  // Deletes all playlist and user tracks.
   deleteAllPlaylistAndUserTracks(playlistId: string): Observable<ApiResponse> {
     const params = new HttpParams().set('id', playlistId);
     return this.http.delete<ApiResponse>(`${this.apiUrl}/delete-tracks-and-library`, { params });

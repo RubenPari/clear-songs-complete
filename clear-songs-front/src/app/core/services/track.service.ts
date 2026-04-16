@@ -31,6 +31,7 @@ export class TrackService {
   }
 
   /** Full library: every primary artist with raw Spotify `genres` (for mapping/debug). */
+  // Fetches artist genres debug.
   getArtistGenresDebug(): Observable<ApiResponse<ArtistGenresDebugEntry[]>> {
     return this.http.get<ApiResponse<ArtistGenresDebugEntry[]>>(
       `${this.apiUrl}/debug/artist-genres`
@@ -38,10 +39,12 @@ export class TrackService {
   }
 
   /** Clears Redis user-tracks + track-summary caches; call before reloading the dashboard summary. */
+  // Invalidates library cache.
   invalidateLibraryCache(): Observable<ApiResponse<unknown>> {
     return this.http.post<ApiResponse<unknown>>(`${this.apiUrl}/library-cache/invalidate`, {});
   }
 
+  // Deletes tracks by artist.
   deleteTracksByArtist(artistId: string): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/by-artist/${artistId}`).pipe(
       tap(() => {
@@ -50,15 +53,18 @@ export class TrackService {
     );
   }
 
+  // Deletes tracks by range.
   deleteTracksByRange(min?: number, max?: number): Observable<ApiResponse> {
     const params = buildRangeParams(min, max);
     return this.http.delete<ApiResponse>(`${this.apiUrl}/by-range`, { params });
   }
 
+  // Fetches tracks by artist.
   getTracksByArtist(artistId: string): Observable<ApiResponse<Track[]>> {
     return this.http.get<ApiResponse<Track[]>>(`${this.apiUrl}/by-artist/${artistId}`);
   }
 
+  // Deletes track.
   deleteTrack(trackId: string): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/${trackId}`);
   }

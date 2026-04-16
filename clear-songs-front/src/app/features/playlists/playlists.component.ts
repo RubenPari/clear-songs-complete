@@ -63,14 +63,17 @@ export class PlaylistsComponent {
     });
   }
 
+  // Selects playlist.
   selectPlaylist(playlist: UserPlaylist): void {
     this.selectedPlaylistId.set(playlist.id);
   }
 
+  // Resets form.
   resetForm(): void {
     this.selectedPlaylistId.set(null);
   }
 
+  // Handle action.
   handleAction(action: PlaylistAction): void {
     const playlistId = this.selectedPlaylistId();
     if (!playlistId) {

@@ -56,6 +56,7 @@ import { HttpParams } from '@angular/common/http';
  * // Usage in HTTP request:
  * this.http.get('/api/tracks/summary', { params: buildRangeParams(5, 10) })
  */
+// Builds range params.
 export function buildRangeParams(min?: number, max?: number, genre?: string): HttpParams {
   let params = new HttpParams();
   

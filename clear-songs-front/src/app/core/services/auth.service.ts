@@ -51,10 +51,12 @@ export class AuthService {
     });
   }
 
+  // Starts.
   login(): void {
     window.location.href = `${this.apiUrl}/auth/login`;
   }
 
+  // Handle callback.
   handleCallback(code: string): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.apiUrl}/auth/callback?code=${code}`).pipe(
       tap((response) => {
@@ -67,6 +69,7 @@ export class AuthService {
     );
   }
 
+  // Logs out.
   logout(): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.apiUrl}/auth/logout`).pipe(
       tap(() => {
@@ -79,6 +82,7 @@ export class AuthService {
     );
   }
 
+  // Checks auth status.
   checkAuthStatus(): Observable<boolean> {
     return toObservable(this.sessionStatus, { injector: this.injector }).pipe(
       filter((status) => status === 'resolved' || status === 'error'),

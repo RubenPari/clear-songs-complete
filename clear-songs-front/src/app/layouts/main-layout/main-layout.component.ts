@@ -84,10 +84,12 @@ export class MainLayoutComponent {
     });
   }
 
+  // Toggles theme.
   toggleTheme(): void {
     this.isDarkTheme.update(value => !value);
   }
 
+  // Switches language.
   switchLanguage(): void {
     const newLang = this.currentLang() === 'en' ? 'it' : 'en';
     this.currentLang.set(newLang);
@@ -97,6 +99,7 @@ export class MainLayoutComponent {
     }
   }
 
+  // Logs out.
   logout(): void {
     this.loadingService.show();
     this.authService.logout()
@@ -111,6 +114,7 @@ export class MainLayoutComponent {
       .subscribe();
   }
 
+  // Opens sidebar.
   openSidebar(content: TemplateRef<unknown>): void {
     this.offcanvasService.open(content, { position: 'start' });
   }

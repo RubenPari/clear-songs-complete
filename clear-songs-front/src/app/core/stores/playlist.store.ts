@@ -17,15 +17,18 @@ export class PlaylistStore {
 
   public readonly totalPlaylists = computed(() => this._playlists().length);
 
+  // Sets playlists.
   setPlaylists(playlists: UserPlaylist[]): void {
     this._playlists.set(playlists);
     this._error.set(null);
   }
 
+  // Sets loading.
   setLoading(loading: boolean): void {
     this._loading.set(loading);
   }
 
+  // Sets error.
   setError(error: string | null): void {
     this._error.set(error);
     if (error) {
@@ -33,14 +36,17 @@ export class PlaylistStore {
     }
   }
 
+  // Selects playlist.
   selectPlaylist(playlist: UserPlaylist | null): void {
     this._selectedPlaylist.set(playlist);
   }
 
+  // Removes playlist.
   removePlaylist(playlistId: string): void {
     this._playlists.update(playlists => playlists.filter(p => p.id !== playlistId));
   }
 
+  // Resets.
   reset(): void {
     this._playlists.set([]);
     this._loading.set(false);

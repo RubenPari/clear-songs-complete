@@ -52,6 +52,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
   private yScale: any;
   private tooltip: any;
 
+  // Runs after the view initializes.
   ngAfterViewInit(): void {
     this.initChart();
     if (this.data && this.data.length > 0) {
@@ -59,6 +60,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
     }
   }
 
+  // Updates the chart when inputs change.
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] && !changes['data'].firstChange && this.svg) {
       if (this.data && this.data.length > 0) {
@@ -70,12 +72,14 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
     }
   }
 
+  // Cleans up component resources.
   ngOnDestroy(): void {
     if (this.tooltip) {
       this.tooltip.remove();
     }
   }
 
+  // Initializes chart.
   private initChart(): void {
     const container = this.chartContainer.nativeElement;
 
@@ -137,6 +141,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
       .attr('class', 'grid-lines');
   }
 
+  // Updates chart.
   private updateChart(): void {
     if (!this.data || this.data.length === 0) {
       return;
@@ -256,6 +261,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
   }
 
   @HostListener('window:resize')
+  // On resize.
   onResize(): void {
     if (this.chartContainer && this.svg) {
       const container = this.chartContainer.nativeElement;

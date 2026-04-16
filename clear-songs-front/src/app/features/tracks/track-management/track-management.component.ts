@@ -55,6 +55,7 @@ export class TrackManagementComponent {
     );
   }
 
+  // Range validator.
   static rangeValidator(form: AbstractControl): ValidationErrors | null {
     const min = form.get('min')?.value;
     const max = form.get('max')?.value;
@@ -65,6 +66,7 @@ export class TrackManagementComponent {
     return null;
   }
 
+  // Deletes by range.
   deleteByRange(): void {
     if (this.rangeForm.invalid) {
       return;
@@ -114,6 +116,7 @@ export class TrackManagementComponent {
       });
   }
 
+  // Applies preset.
   applyPreset(preset: PresetRange): void {
     this.rangeForm.patchValue({
       min: preset.min,

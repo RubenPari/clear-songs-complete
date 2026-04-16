@@ -25,15 +25,18 @@ export class TrackStore {
       .slice(0, 5)
   );
 
+  // Sets artists.
   setArtists(artists: ArtistSummary[]): void {
     this._artists.set(artists);
     this._error.set(null);
   }
 
+  // Sets loading.
   setLoading(loading: boolean): void {
     this._loading.set(loading);
   }
 
+  // Sets error.
   setError(error: string | null): void {
     this._error.set(error);
     if (error) {
@@ -41,16 +44,19 @@ export class TrackStore {
     }
   }
 
+  // Removes artist.
   removeArtist(artistId: string): void {
     this._artists.update(artists => artists.filter(a => a.id !== artistId));
   }
 
+  // Updates artist.
   updateArtist(artistId: string, updates: Partial<ArtistSummary>): void {
     this._artists.update(artists =>
       artists.map(artist => (artist.id === artistId ? { ...artist, ...updates } : artist))
     );
   }
 
+  // Resets.
   reset(): void {
     this._artists.set([]);
     this._loading.set(false);

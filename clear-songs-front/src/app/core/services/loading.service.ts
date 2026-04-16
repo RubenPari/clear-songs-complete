@@ -62,6 +62,7 @@ export class LoadingService {
    * This method should be called at the start of async operations
    * (HTTP requests, file operations, etc.) to provide user feedback.
    */
+  // Show.
   show(): void {
     this._loading.set(true);
   }
@@ -76,6 +77,7 @@ export class LoadingService {
    * Note: Consider using RxJS finalize() operator in HTTP requests
    * to ensure this is called even if an error occurs.
    */
+  // Hide.
   hide(): void {
     this._loading.set(false);
   }

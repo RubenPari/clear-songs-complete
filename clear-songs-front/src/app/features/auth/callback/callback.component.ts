@@ -44,6 +44,7 @@ export class CallbackComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly translate = inject(TranslateService);
 
+  // Runs on component initialization.
   ngOnInit(): void {
     this.route.queryParams
       .pipe(takeUntilDestroyed(this.destroyRef))

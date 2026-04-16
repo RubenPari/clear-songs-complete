@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class LoginComponent {
   private authService = inject(AuthService);
 
+  // Starts with spotify.
   loginWithSpotify(): void {
     this.authService.login();
   }

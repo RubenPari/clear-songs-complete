@@ -236,10 +236,12 @@ export class ArtistTracksModalComponent implements OnInit {
     }));
   });
 
+  // Runs on component initialization.
   ngOnInit(): void {
     this.loadTracks();
   }
 
+  // Loads tracks.
   loadTracks(): void {
     this.isLoading.set(true);
     this.trackService.getTracksByArtist(this.artist.id)
@@ -252,6 +254,7 @@ export class ArtistTracksModalComponent implements OnInit {
       });
   }
 
+  // Toggles album.
   toggleAlbum(albumName: string): void {
     this.collapsedAlbums.update(set => {
       const next = new Set(set);
@@ -264,10 +267,12 @@ export class ArtistTracksModalComponent implements OnInit {
     });
   }
 
+  // Checks whether album collapsed.
   isAlbumCollapsed(albumName: string): boolean {
     return this.collapsedAlbums().has(albumName);
   }
 
+  // Deletes album tracks.
   deleteAlbumTracks(group: AlbumGroup, event: Event): void {
     event.stopPropagation();
 
@@ -304,6 +309,7 @@ export class ArtistTracksModalComponent implements OnInit {
     });
   }
 
+  // Deletes track.
   deleteTrack(track: Track): void {
     const modalRef = this.modalService.open(ConfirmDialogComponent, {
       size: 'md',

@@ -94,6 +94,7 @@ export class DashboardComponent {
     });
   }
 
+  // Fetches resource.
   private getResource() {
     return this.trackSummaryResource;
   }
@@ -171,6 +172,7 @@ export class DashboardComponent {
     return Math.ceil(this.filteredArtists().length / this.itemsPerPage());
   });
 
+  // Loads track summary.
   loadTrackSummary(): void {
     this.trackService.invalidateLibraryCache().subscribe({
       next: () => this.getResource().reload(),
@@ -181,6 +183,7 @@ export class DashboardComponent {
   }
 
   /** Downloads all library artists with raw Spotify genre arrays as JSON (debug / strategy work). */
+  // Downloads artist genres json.
   downloadArtistGenresJson(): void {
     this.debugGenresDownloading.set(true);
     this.trackService
@@ -210,6 +213,7 @@ export class DashboardComponent {
       });
   }
 
+  // Applies filter.
   applyFilter(event?: Event): void {
     const target = event?.target as HTMLInputElement | null;
     if (target) {
@@ -217,17 +221,20 @@ export class DashboardComponent {
     }
   }
 
+  // Clears genre.
   clearGenre(event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
     this.selectedGenre.set('');
   }
 
+  // Coerces range draft.
   coerceRangeDraft(value: string | number): number {
     const n = typeof value === 'number' ? value : parseInt(String(value), 10);
     return Number.isFinite(n) ? n : 0;
   }
 
+  // Applies range filter.
   applyRangeFilter(): void {
     const step = 1;
     const cap = this.maxTrackCount();
@@ -252,6 +259,7 @@ export class DashboardComponent {
     this.maxRange.set(maxV);
   }
 
+  // Resets filters.
   resetFilters(): void {
     this.searchFilter.set('');
     this.selectedGenre.set('');
@@ -262,6 +270,7 @@ export class DashboardComponent {
     this.rangeMaxDraft.set(cap);
   }
 
+  // Sorts table.
   sortTable(column: string): void {
     if (this.sortColumn() === column) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
@@ -271,10 +280,12 @@ export class DashboardComponent {
     }
   }
 
+  // Changes page.
   changePage(page: number): void {
     this.currentPage.set(page);
   }
 
+  // Opens artist tracks.
   openArtistTracks(artist: ArtistSummary): void {
     const modalRef = this.modalService.open(ArtistTracksModalComponent, {
       size: 'lg',
@@ -288,6 +299,7 @@ export class DashboardComponent {
       .subscribe(() => this.loadTrackSummary());
   }
 
+  // Deletes artist tracks.
   deleteArtistTracks(artist: ArtistSummary): void {
     openConfirmDialog(this.modalService, {
       title: this.translate.instant('DASHBOARD.DELETE_ARTIST_TITLE'),
