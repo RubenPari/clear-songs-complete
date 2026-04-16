@@ -12,9 +12,13 @@ type MockAIRepository struct {
 	mock.Mock
 }
 
-func (m *MockAIRepository) ResolveArtistGenre(ctx context.Context, artistName string) (string, error) {
-	args := m.Called(ctx, artistName)
-	return args.String(0), args.Error(1)
+func (m *MockAIRepository) ResolveArtistGenres(ctx context.Context, lookups []shared.AIArtistLookup) (map[string]string, error) {
+	args := m.Called(ctx, lookups)
+	var out map[string]string
+	if v := args.Get(0); v != nil {
+		out = v.(map[string]string)
+	}
+	return out, args.Error(1)
 }
 
 var _ shared.AIRepository = (*MockAIRepository)(nil)
