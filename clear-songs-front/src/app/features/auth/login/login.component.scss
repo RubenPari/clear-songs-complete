@@ -84,13 +84,16 @@
 .login-content {
   position: relative;
   z-index: 1;
-  width: 100%;
-  max-width: 480px;
+  width: 640px;
+  max-width: 640px;
   padding: var(--space-lg);
   animation: fadeInUp 0.8s ease-out;
 }
 
 .login-card {
+  width: 100%;
+  min-width: 640px;
+  max-width: 640px;
   background: var(--bg-glass);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
@@ -447,10 +450,14 @@
   }
 
   .login-content {
+    width: 100%;
+    max-width: 100%;
     padding: var(--space-md);
   }
 
   .login-card {
+    min-width: 0;
+    max-width: 100%;
     padding: var(--space-xl) var(--space-lg);
 
     .logo-section {
