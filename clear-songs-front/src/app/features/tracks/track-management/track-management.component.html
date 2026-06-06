@@ -1,144 +1,115 @@
-<div class="track-management-container">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">{{ 'TRACKS.TITLE' | translate }}</h1>
-      <p class="page-subtitle">{{ 'TRACKS.SUBTITLE' | translate }}</p>
-    </div>
+<div class="mx-auto max-w-5xl">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">{{ 'TRACKS.TITLE' | translate }}</h1>
+    <p class="mt-1 text-sm text-muted-foreground">{{ 'TRACKS.SUBTITLE' | translate }}</p>
   </div>
 
-  <div class="content-layout">
-    <div class="main-section">
-      <div class="modern-card">
-        <div class="card-header-modern">
-          <div class="card-header-content">
-            <i class="bi bi-sliders me-2"></i>
-            <div>
-              <h5 class="card-title-modern">{{ 'TRACKS.DELETE_BY_RANGE' | translate }}</h5>
-              <p class="card-subtitle">{{ 'TRACKS.RANGE_DESC' | translate }}</p>
-            </div>
-          </div>
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <!-- Main -->
+    <div appCard class="lg:col-span-2">
+      <div class="flex items-start gap-3 border-b px-5 py-4">
+        <ng-icon name="lucideListFilter" size="20" class="mt-0.5 text-primary" />
+        <div>
+          <h2 class="font-display text-base font-semibold">{{ 'TRACKS.DELETE_BY_RANGE' | translate }}</h2>
+          <p class="text-sm text-muted-foreground">{{ 'TRACKS.RANGE_DESC' | translate }}</p>
         </div>
-        <div class="card-body-modern">
-          <div class="presets-section">
-            <span class="section-label">{{ 'TRACKS.PRESETS_LABEL' | translate }}</span>
-            <p class="section-description">{{ 'TRACKS.PRESETS_DESC' | translate }}</p>
-            <div class="presets-grid">
-              @for (preset of presetRanges; track preset.label) {
-                <button
-                  class="btn-preset"
-                  (click)="applyPreset(preset)"
-                >
-                  <i class="bi bi-lightning-fill"></i>
-                  <span>{{ preset.label | translate }}</span>
-                </button>
-              }
-            </div>
-          </div>
+      </div>
 
-          <div class="divider"></div>
-
-          <form [formGroup]="rangeForm" class="range-form">
-            <span class="section-label">{{ 'TRACKS.CUSTOM_RANGE' | translate }}</span>
-            <p class="section-description">{{ 'TRACKS.CUSTOM_DESC' | translate }}</p>
-            
-            <div class="range-inputs">
-              <div class="input-group-modern">
-                <label for="min-tracks-input" class="input-label">{{ 'TRACKS.MIN_TRACKS' | translate }}</label>
-                <input 
-                  id="min-tracks-input"
-                  type="number" 
-                  class="form-control-modern" 
-                  formControlName="min" 
-                  min="0"
-                  placeholder="e.g. 1"
-                  [class.is-invalid]="rangeForm.get('min')?.invalid && rangeForm.get('min')?.touched"
-                />
-                <div class="input-help">{{ 'TRACKS.MIN_HELP' | translate }}</div>
-              </div>
-
-              <div class="range-separator">
-                <div class="separator-line"></div>
-                <span class="separator-text">{{ 'TRACKS.TO' | translate }}</span>
-                <div class="separator-line"></div>
-              </div>
-
-              <div class="input-group-modern">
-                <label for="max-tracks-input" class="input-label">{{ 'TRACKS.MAX_TRACKS' | translate }}</label>
-                <input 
-                  id="max-tracks-input"
-                  type="number" 
-                  class="form-control-modern" 
-                  formControlName="max" 
-                  min="0"
-                  placeholder="e.g. 10"
-                  [class.is-invalid]="rangeForm.get('max')?.invalid && rangeForm.get('max')?.touched"
-                />
-                <div class="input-help">{{ 'TRACKS.MAX_HELP' | translate }}</div>
-              </div>
-            </div>
-
-            @if (rangeForm.errors?.['invalidRange']) {
-              <div class="error-banner">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <span>{{ 'TRACKS.ERR_RANGE' | translate }}</span>
-              </div>
+      <div class="space-y-6 p-5">
+        <!-- Presets -->
+        <div>
+          <span class="font-display text-sm font-semibold">{{ 'TRACKS.PRESETS_LABEL' | translate }}</span>
+          <p class="mb-3 text-sm text-muted-foreground">{{ 'TRACKS.PRESETS_DESC' | translate }}</p>
+          <div class="flex flex-wrap gap-2">
+            @for (preset of presetRanges; track preset.label) {
+              <button appBtn variant="outline" size="sm" (click)="applyPreset(preset)">
+                <ng-icon name="lucideSparkles" size="14" />
+                <span>{{ preset.label | translate }}</span>
+              </button>
             }
-
-            <div class="form-actions">
-              <button class="btn-action btn-action-secondary" type="button" (click)="rangeForm.reset()">
-                <i class="bi bi-x-circle"></i>
-                <span>{{ 'TRACKS.BTN_CLEAR' | translate }}</span>
-              </button>
-              <button
-                class="btn-action btn-action-danger"
-                [disabled]="rangeForm.invalid"
-                (click)="deleteByRange()"
-              >
-                <i class="bi bi-trash"></i>
-                <span>{{ 'TRACKS.BTN_DELETE' | translate }}</span>
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
+
+        <div class="h-px bg-border"></div>
+
+        <!-- Custom range -->
+        <form [formGroup]="rangeForm" class="space-y-4">
+          <div>
+            <span class="font-display text-sm font-semibold">{{ 'TRACKS.CUSTOM_RANGE' | translate }}</span>
+            <p class="text-sm text-muted-foreground">{{ 'TRACKS.CUSTOM_DESC' | translate }}</p>
+          </div>
+
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div class="flex-1 space-y-1.5">
+              <label for="min-tracks-input" class="text-xs font-medium text-muted-foreground">{{ 'TRACKS.MIN_TRACKS' | translate }}</label>
+              <input
+                appInput
+                id="min-tracks-input"
+                type="number"
+                formControlName="min"
+                min="0"
+                placeholder="e.g. 1"
+                [class.border-destructive]="rangeForm.get('min')?.invalid && rangeForm.get('min')?.touched"
+              />
+              <p class="text-xs text-muted-foreground">{{ 'TRACKS.MIN_HELP' | translate }}</p>
+            </div>
+
+            <div class="hidden items-center pt-7 text-sm text-muted-foreground sm:flex">
+              {{ 'TRACKS.TO' | translate }}
+            </div>
+
+            <div class="flex-1 space-y-1.5">
+              <label for="max-tracks-input" class="text-xs font-medium text-muted-foreground">{{ 'TRACKS.MAX_TRACKS' | translate }}</label>
+              <input
+                appInput
+                id="max-tracks-input"
+                type="number"
+                formControlName="max"
+                min="0"
+                placeholder="e.g. 10"
+                [class.border-destructive]="rangeForm.get('max')?.invalid && rangeForm.get('max')?.touched"
+              />
+              <p class="text-xs text-muted-foreground">{{ 'TRACKS.MAX_HELP' | translate }}</p>
+            </div>
+          </div>
+
+          @if (rangeForm.errors?.['invalidRange']) {
+            <div class="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+              <ng-icon name="lucideTriangleAlert" size="16" />
+              <span>{{ 'TRACKS.ERR_RANGE' | translate }}</span>
+            </div>
+          }
+
+          <div class="flex flex-wrap justify-end gap-2 pt-2">
+            <button appBtn variant="outline" type="button" (click)="rangeForm.reset()">
+              <ng-icon name="lucideX" size="16" />
+              <span>{{ 'TRACKS.BTN_CLEAR' | translate }}</span>
+            </button>
+            <button appBtn variant="destructive" [disabled]="rangeForm.invalid" (click)="deleteByRange()">
+              <ng-icon name="lucideTrash2" size="16" />
+              <span>{{ 'TRACKS.BTN_DELETE' | translate }}</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
-    <div class="info-section">
-      <div class="modern-card info-card">
-        <div class="card-header-modern">
-          <div class="card-header-content">
-            <i class="bi bi-info-circle me-2"></i>
-            <h5 class="card-title-modern">{{ 'TRACKS.HOW_TITLE' | translate }}</h5>
+    <!-- Info -->
+    <div appCard class="h-fit">
+      <div class="flex items-center gap-2 border-b px-5 py-4">
+        <ng-icon name="lucideShieldCheck" size="18" class="text-primary" />
+        <h2 class="font-display text-base font-semibold">{{ 'TRACKS.HOW_TITLE' | translate }}</h2>
+      </div>
+      <div class="space-y-4 p-5">
+        @for (step of ['TRACKS.HOW_1', 'TRACKS.HOW_2', 'TRACKS.HOW_3', 'TRACKS.HOW_4']; track step; let i = $index) {
+          <div class="flex gap-3">
+            <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              {{ i + 1 }}
+            </span>
+            <p class="text-sm text-muted-foreground">{{ step | translate }}</p>
           </div>
-        </div>
-        <div class="card-body-modern">
-          <div class="info-list">
-            <div class="info-item">
-              <div class="info-icon">
-                <i class="bi bi-1-circle-fill"></i>
-              </div>
-              <div class="info-text">{{ 'TRACKS.HOW_1' | translate }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon">
-                <i class="bi bi-2-circle-fill"></i>
-              </div>
-              <div class="info-text">{{ 'TRACKS.HOW_2' | translate }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon">
-                <i class="bi bi-3-circle-fill"></i>
-              </div>
-              <div class="info-text">{{ 'TRACKS.HOW_3' | translate }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon">
-                <i class="bi bi-shield-check"></i>
-              </div>
-              <div class="info-text">{{ 'TRACKS.HOW_4' | translate }}</div>
-            </div>
-          </div>
-        </div>
+        }
       </div>
     </div>
   </div>

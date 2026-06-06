@@ -1,273 +1,68 @@
 /**
- * Skeleton Components
- *
- * Reusable skeleton loading placeholders for improved UX during data loading.
- * Provides visual feedback that content is being loaded.
+ * Skeleton loading placeholders (Tailwind, design-system tokens).
+ * Reduce perceived latency and layout shift while data loads.
  */
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-skeleton-stat',
   standalone: true,
-  imports: [CommonModule],
   template: `
-    <div class="skeleton-stat">
-      <div class="skeleton-icon"></div>
-      <div class="skeleton-content">
-        <div class="skeleton-value"></div>
-        <div class="skeleton-label"></div>
+    <div class="flex items-center gap-4 rounded-xl border bg-card p-5 shadow-sm">
+      <div class="size-12 shrink-0 animate-pulse rounded-lg bg-muted"></div>
+      <div class="flex-1 space-y-2">
+        <div class="h-7 w-3/5 animate-pulse rounded-md bg-muted"></div>
+        <div class="h-4 w-2/5 animate-pulse rounded bg-muted"></div>
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    .skeleton-stat {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 24px;
-      background: var(--card-bg, #ffffff);
-      border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-
-    .skeleton-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    .skeleton-content {
-      flex: 1;
-    }
-
-    .skeleton-value {
-      height: 32px;
-      width: 60%;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    .skeleton-label {
-      height: 16px;
-      width: 40%;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* Dark theme */
-    :host-context(.dark-theme) .skeleton-stat {
-      background: #1e293b;
-    }
-
-    :host-context(.dark-theme) .skeleton-icon,
-    :host-context(.dark-theme) .skeleton-value,
-    :host-context(.dark-theme) .skeleton-label {
-      background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-      background-size: 200% 100%;
-    }
-  `]
 })
 export class SkeletonStatComponent {}
 
 @Component({
   selector: 'app-skeleton-table',
   standalone: true,
-  imports: [CommonModule],
   template: `
-    <div class="skeleton-table-container">
-      <div class="skeleton-header">
-        <div class="skeleton-title"></div>
-      </div>
-      <div class="skeleton-rows">
+    <div class="rounded-xl border bg-card p-6 shadow-sm">
+      <div class="mb-5 h-6 w-48 animate-pulse rounded bg-muted"></div>
+      <div class="flex flex-col">
         @for (row of rows; track $index) {
-          <div class="skeleton-row">
-            <div class="skeleton-cell cell-large"></div>
-            <div class="skeleton-cell cell-medium"></div>
-            <div class="skeleton-cell cell-small"></div>
+          <div class="flex items-center gap-4 border-b border-border/60 py-3 last:border-b-0">
+            <div class="size-10 shrink-0 animate-pulse rounded-full bg-muted"></div>
+            <div class="h-4 flex-[2] animate-pulse rounded bg-muted"></div>
+            <div class="h-4 flex-1 animate-pulse rounded bg-muted"></div>
+            <div class="h-8 w-16 animate-pulse rounded-md bg-muted"></div>
           </div>
         }
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    .skeleton-table-container {
-      background: var(--card-bg, #ffffff);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-
-    .skeleton-header {
-      margin-bottom: 20px;
-    }
-
-    .skeleton-title {
-      height: 24px;
-      width: 200px;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    .skeleton-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .skeleton-row {
-      display: flex;
-      gap: 16px;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .skeleton-row:last-child {
-      border-bottom: none;
-    }
-
-    .skeleton-cell {
-      height: 20px;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    .cell-large { flex: 2; }
-    .cell-medium { flex: 1; }
-    .cell-small { width: 60px; }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* Dark theme */
-    :host-context(.dark-theme) .skeleton-table-container {
-      background: #1e293b;
-    }
-
-    :host-context(.dark-theme) .skeleton-title,
-    :host-context(.dark-theme) .skeleton-cell {
-      background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-      background-size: 200% 100%;
-    }
-
-    :host-context(.dark-theme) .skeleton-row {
-      border-bottom-color: rgba(255, 255, 255, 0.05);
-    }
-  `]
 })
 export class SkeletonTableComponent {
   @Input() rowCount = 5;
-  get rows() { return new Array(this.rowCount); }
+  get rows() {
+    return new Array(this.rowCount);
+  }
 }
 
 @Component({
   selector: 'app-skeleton-chart',
   standalone: true,
-  imports: [CommonModule],
   template: `
-    <div class="skeleton-chart-container">
-      <div class="skeleton-header">
-        <div class="skeleton-title"></div>
-      </div>
-      <div class="skeleton-chart">
-        @for (bar of bars; track $index; let i = $index) {
+    <div class="rounded-xl border bg-card p-6 shadow-sm">
+      <div class="mb-5 h-6 w-48 animate-pulse rounded bg-muted"></div>
+      <div class="flex h-64 items-end justify-around gap-6 py-2">
+        @for (h of barHeights; track $index) {
           <div
-            class="skeleton-bar"
-            [style.height.%]="barHeights[i]"
+            class="w-full max-w-14 animate-pulse rounded-t-md bg-muted"
+            [style.height.%]="h"
           ></div>
         }
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    .skeleton-chart-container {
-      background: var(--card-bg, #ffffff);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    }
-
-    .skeleton-header {
-      margin-bottom: 20px;
-    }
-
-    .skeleton-title {
-      height: 24px;
-      width: 200px;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    .skeleton-chart {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-around;
-      gap: 24px;
-      height: 280px;
-      padding: 20px 0;
-    }
-
-    .skeleton-bar {
-      flex: 1;
-      max-width: 60px;
-      border-radius: 4px 4px 0 0;
-      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* Dark theme */
-    :host-context(.dark-theme) .skeleton-chart-container {
-      background: #1e293b;
-    }
-
-    :host-context(.dark-theme) .skeleton-title,
-    :host-context(.dark-theme) .skeleton-bar {
-      background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-      background-size: 200% 100%;
-    }
-  `]
 })
 export class SkeletonChartComponent {
   @Input() barCount = 5;
   barHeights = [60, 80, 100, 70, 50];
-  get bars() { return new Array(this.barCount); }
 }

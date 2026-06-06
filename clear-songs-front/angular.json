@@ -23,8 +23,9 @@
               }
             ],
             "styles": [
+              "node_modules/@angular/cdk/overlay-prebuilt.css",
               "node_modules/ngx-toastr/toastr.css",
-              "src/styles.scss"
+              "src/styles.css"
             ]
           },
           "configurations": {
@@ -81,7 +82,9 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "node_modules/@angular/cdk/overlay-prebuilt.css",
+              "node_modules/ngx-toastr/toastr.css",
+              "src/styles.css"
             ]
           }
         },

@@ -15,7 +15,7 @@
  */
 import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -34,21 +34,29 @@ export class App {
   
   private translate = inject(TranslateService);
   private platformId = inject(PLATFORM_ID);
+  private document = inject(DOCUMENT);
 
   constructor() {
     this.translate.addLangs(['en', 'it']);
     this.translate.setDefaultLang('en');
-    
+
     // Check if preference exists, otherwise use browser language or default
     if (isPlatformBrowser(this.platformId)) {
       const browserLang = this.translate.getBrowserLang() || 'en';
       const savedLang = localStorage.getItem('app-lang-preference');
-      
-      const langToUse = savedLang && ['en', 'it'].includes(savedLang) 
-        ? savedLang 
+
+      const langToUse = savedLang && ['en', 'it'].includes(savedLang)
+        ? savedLang
         : (['en', 'it'].includes(browserLang) ? browserLang : 'en');
-        
+
       this.translate.use(langToUse);
+
+      // Apply the saved (or system) theme app-wide, before any route renders,
+      // so login/callback also respect dark mode. The main layout keeps it in sync.
+      const savedTheme = localStorage.getItem('app-theme-preference');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+      this.document.documentElement.classList.toggle('dark', isDark);
     } else {
       this.translate.use('en');
     }

@@ -9,18 +9,18 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideToastr } from 'ngx-toastr';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { provideIcons } from '@ng-icons/core';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader, provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { APP_ICONS } from './shared/ui/icons';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-    importProvidersFrom(NgbModule),
     importProvidersFrom(
       TranslateModule.forRoot({
         fallbackLang: 'en',
@@ -37,6 +37,7 @@ export const appConfig: ApplicationConfig = {
       timeOut: 3000,
       positionClass: 'toast-top-right',
       preventDuplicates: true,
-    })
+    }),
+    provideIcons(APP_ICONS)
   ]
 };

@@ -4,7 +4,7 @@ import { DashboardComponent } from './dashboard.component';
 import { TrackService } from '../../core/services/track.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { LoadingService } from '../../core/services/loading.service';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Dialog } from '@angular/cdk/dialog';
 import { TranslateModule } from '@ngx-translate/core';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { ArtistSummary } from '../../core/models/artist.model';
@@ -33,7 +33,7 @@ describe('DashboardComponent', () => {
     trackServiceSpy.invalidateLibraryCache.and.returnValue(of({ success: true }));
     const notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['success', 'error']);
     const loadingServiceSpy = jasmine.createSpyObj('LoadingService', ['show', 'hide']);
-    const modalServiceSpy = jasmine.createSpyObj('NgbModal', ['open']);
+    const modalServiceSpy = jasmine.createSpyObj('Dialog', ['open']);
 
     // Mock the resource API
     resourceValue = signal<ApiResponse<ArtistSummary[]>>({ success: true, data: [] });
@@ -53,7 +53,7 @@ describe('DashboardComponent', () => {
         { provide: TrackService, useValue: trackServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: LoadingService, useValue: loadingServiceSpy as LoadingService },
-        { provide: NgbModal, useValue: modalServiceSpy },
+        { provide: Dialog, useValue: modalServiceSpy },
       ]
     }).compileComponents();
 
