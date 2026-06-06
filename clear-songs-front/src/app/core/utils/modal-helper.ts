@@ -1,36 +1,45 @@
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { Observable, from, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Dialog, DialogConfig } from '@angular/cdk/dialog';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 export interface ConfirmDialogOptions {
   title: string;
   message: string;
   confirmText?: string;
   cancelText?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  centered?: boolean;
+  danger?: boolean;
 }
 
-export function modalResult$<T>(modalRef: NgbModalRef, dismissedValue: T): Observable<T> {
-  return from(modalRef.result as Promise<T>).pipe(catchError(() => of(dismissedValue)));
+/** Shared CDK dialog config: centered overlay with a dark, dismissable backdrop. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function baseDialogConfig<D>(data: D): DialogConfig<D, any> {
+  return {
+    data,
+    hasBackdrop: true,
+    backdropClass: 'app-dialog-backdrop',
+    panelClass: 'app-dialog-panel',
+  };
 }
 
 // Opens confirm dialog.
 export function openConfirmDialog(
-  modalService: NgbModal,
-  options: ConfirmDialogOptions
+  dialog: Dialog,
+  options: ConfirmDialogOptions,
 ): Observable<boolean> {
-  const modalRef = modalService.open(ConfirmDialogComponent, {
-    size: options.size || 'md',
-    centered: options.centered !== false,
-  });
-
-  modalRef.componentInstance.title = options.title;
-  modalRef.componentInstance.message = options.message;
-  modalRef.componentInstance.confirmText = options.confirmText || 'Confirm';
-  modalRef.componentInstance.cancelText = options.cancelText || 'Cancel';
-
-  return modalResult$<boolean>(modalRef, false);
+  const ref = dialog.open<boolean, ConfirmDialogData>(
+    ConfirmDialogComponent,
+    baseDialogConfig<ConfirmDialogData>({
+      title: options.title,
+      message: options.message,
+      confirmText: options.confirmText ?? 'Confirm',
+      cancelText: options.cancelText ?? 'Cancel',
+      danger: options.danger ?? false,
+    }),
+  );
+  return ref.closed.pipe(map((result) => result === true));
 }

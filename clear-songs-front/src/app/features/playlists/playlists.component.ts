@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Dialog } from '@angular/cdk/dialog';
 import { filter, finalize, switchMap } from 'rxjs/operators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgIcon } from '@ng-icons/core';
 
 import { ApiError } from '../../core/models/api-response.model';
 import { UserPlaylist } from '../../core/models/artist.model';
@@ -10,6 +11,8 @@ import { LoadingService } from '../../core/services/loading.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PlaylistService } from '../../core/services/playlist.service';
 import { openConfirmDialog } from '../../core/utils/modal-helper';
+import { ButtonDirective } from '../../shared/ui/button.directive';
+import { CardDirective } from '../../shared/ui/card.directive';
 
 type PlaylistAction = 'playlist' | 'playlistAndLibrary';
 
@@ -20,14 +23,17 @@ type PlaylistAction = 'playlist' | 'playlistAndLibrary';
   standalone: true,
   imports: [
     CommonModule,
-    TranslateModule
+    TranslateModule,
+    NgIcon,
+    ButtonDirective,
+    CardDirective,
   ],
 })
 export class PlaylistsComponent {
   private playlistService = inject(PlaylistService);
   private notificationService = inject(NotificationService);
   public loadingService = inject(LoadingService);
-  private modalService = inject(NgbModal);
+  private dialog = inject(Dialog);
   private translate = inject(TranslateService);
 
   lastOperation = signal<{ playlistId: string; action: PlaylistAction; timestamp: number } | undefined>(undefined);
@@ -82,13 +88,12 @@ export class PlaylistsComponent {
 
     const copy = this.actionCopy()[action];
 
-    openConfirmDialog(this.modalService, {
+    openConfirmDialog(this.dialog, {
       title: copy.title,
       message: `${copy.message}\n\n${this.translate.instant('PLAYLISTS.PLAYLIST_ID')}: ${playlistId}`,
       confirmText: copy.confirmText,
       cancelText: this.translate.instant('PLAYLISTS.ACTION_CANCEL'),
-      size: 'md',
-      centered: true,
+      danger: action === 'playlistAndLibrary',
     })
       .pipe(
         filter((confirmed) => confirmed),

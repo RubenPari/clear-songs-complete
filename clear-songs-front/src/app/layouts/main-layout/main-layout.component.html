@@ -1,139 +1,198 @@
-<div class="sidenav-container">
-  <!-- Sidebar Offcanvas -->
-  <ng-template #sidebarContent let-offcanvas>
-    <div class="offcanvas-header border-bottom">
-      <div class="d-flex align-items-center">
-        <div class="logo-icon me-2">🎵</div>
-        <h5 class="offcanvas-title mb-0 fw-bold">Clear Songs</h5>
-      </div>
-      <button type="button" class="btn-close" aria-label="Close" (click)="offcanvas.dismiss()"></button>
+<div class="flex min-h-screen bg-background text-foreground">
+  <!-- Desktop sidebar -->
+  <aside
+    class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-card md:flex"
+  >
+    <div class="flex h-16 items-center gap-2.5 border-b px-6">
+      <span class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <ng-icon name="lucideMusic" size="18" />
+      </span>
+      <span class="font-display text-lg font-bold tracking-tight">Clear Songs</span>
     </div>
-    <div class="offcanvas-body p-0">
-      <nav class="nav flex-column sidebar-nav">
-        <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" (click)="offcanvas.dismiss()">
-          <div class="nav-link-content">
-            <i class="bi bi-speedometer2"></i>
-            <span>{{ 'NAV.DASHBOARD' | translate }}</span>
-          </div>
-        </a>
-        <a class="nav-link" routerLink="/tracks" routerLinkActive="active" (click)="offcanvas.dismiss()">
-          <div class="nav-link-content">
-            <i class="bi bi-music-note-list"></i>
-            <span>{{ 'NAV.TRACKS' | translate }}</span>
-          </div>
-        </a>
-        <a class="nav-link" routerLink="/playlists" routerLinkActive="active" (click)="offcanvas.dismiss()">
-          <div class="nav-link-content">
-            <i class="bi bi-collection-play"></i>
-            <span>{{ 'NAV.PLAYLISTS' | translate }}</span>
-          </div>
-        </a>
-        <div class="nav-divider"></div>
-        <a class="nav-link" (click)="logout(); offcanvas.dismiss()" role="button" tabindex="0" (keyup.enter)="logout(); offcanvas.dismiss()">
-          <div class="nav-link-content">
-            <i class="bi bi-box-arrow-right"></i>
-            <span>{{ 'NAV.LOGOUT' | translate }}</span>
-          </div>
-        </a>
-      </nav>
-    </div>
-  </ng-template>
 
-  <!-- Desktop Sidebar -->
-  <div class="sidenav d-none d-md-block">
-    <div class="sidenav-header">
-      <div class="d-flex align-items-center mb-4">
-        <div class="logo-icon me-2">🎵</div>
-        <h5 class="mb-0 fw-bold">Clear Songs</h5>
-      </div>
-    </div>
-    <nav class="nav flex-column sidebar-nav">
-      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
-        <div class="nav-link-content">
-          <i class="bi bi-speedometer2"></i>
-          <span>{{ 'NAV.DASHBOARD' | translate }}</span>
-        </div>
-      </a>
-      <a class="nav-link" routerLink="/tracks" routerLinkActive="active">
-        <div class="nav-link-content">
-          <i class="bi bi-music-note-list"></i>
-          <span>{{ 'NAV.TRACKS' | translate }}</span>
-        </div>
-      </a>
-      <a class="nav-link" routerLink="/playlists" routerLinkActive="active">
-        <div class="nav-link-content">
-          <i class="bi bi-collection-play"></i>
-          <span>{{ 'NAV.PLAYLISTS' | translate }}</span>
-        </div>
-      </a>
-      <div class="nav-divider"></div>
-      <a class="nav-link" (click)="logout()" role="button" tabindex="0" (keyup.enter)="logout()">
-        <div class="nav-link-content">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>{{ 'NAV.LOGOUT' | translate }}</span>
-        </div>
-      </a>
+    <nav class="flex flex-1 flex-col gap-1 p-3">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="bg-secondary !text-foreground"
+          class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <ng-icon [name]="item.icon" size="18" />
+          <span>{{ item.label | translate }}</span>
+        </a>
+      }
     </nav>
-  </div>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg app-toolbar">
-      <div class="container-fluid px-4">
-        @if (isHandset()) {
+    <div class="border-t p-3">
+      <button
+        type="button"
+        (click)="logout()"
+        class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+      >
+        <ng-icon name="lucideLogOut" size="18" />
+        <span>{{ 'NAV.LOGOUT' | translate }}</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile drawer -->
+  @if (mobileNavOpen()) {
+    <div
+      class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+      (click)="toggleMobileNav(false)"
+      aria-hidden="true"
+    ></div>
+    <aside
+      class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80vw] flex-col border-r bg-card md:hidden"
+    >
+      <div class="flex h-16 items-center justify-between border-b px-5">
+        <div class="flex items-center gap-2.5">
+          <span class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <ng-icon name="lucideMusic" size="18" />
+          </span>
+          <span class="font-display text-lg font-bold tracking-tight">Clear Songs</span>
+        </div>
+        <button
+          type="button"
+          class="flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="toggleMobileNav(false)"
+        >
+          <ng-icon name="lucideX" size="18" />
+        </button>
+      </div>
+      <nav class="flex flex-1 flex-col gap-1 p-3">
+        @for (item of navItems; track item.route) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-secondary !text-foreground"
+            (click)="toggleMobileNav(false)"
+            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <ng-icon [name]="item.icon" size="18" />
+            <span>{{ item.label | translate }}</span>
+          </a>
+        }
+      </nav>
+      <div class="border-t p-3">
+        <button
+          type="button"
+          (click)="logout()"
+          class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+        >
+          <ng-icon name="lucideLogOut" size="18" />
+          <span>{{ 'NAV.LOGOUT' | translate }}</span>
+        </button>
+      </div>
+    </aside>
+  }
+
+  <!-- Main column -->
+  <div class="flex min-h-screen flex-1 flex-col md:pl-64">
+    <!-- Top bar -->
+    <header
+      class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md sm:px-6"
+    >
+      <button
+        type="button"
+        class="flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
+        aria-label="Open navigation"
+        (click)="toggleMobileNav(true)"
+      >
+        <ng-icon name="lucideMenu" size="20" />
+      </button>
+
+      <div class="flex items-center gap-2 md:hidden">
+        <span class="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <ng-icon name="lucideMusic" size="15" />
+        </span>
+        <span class="font-display font-bold">Clear Songs</span>
+      </div>
+
+      <div class="ml-auto flex items-center gap-1.5">
+        <!-- Theme toggle -->
+        <button
+          type="button"
+          class="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          [title]="isDarkTheme() ? 'Light mode' : 'Dark mode'"
+          (click)="toggleTheme()"
+        >
+          <ng-icon [name]="isDarkTheme() ? 'lucideSun' : 'lucideMoon'" size="18" />
+        </button>
+
+        <!-- Language toggle -->
+        <button
+          type="button"
+          class="flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          [title]="currentLang() === 'en' ? 'Italiano' : 'English'"
+          (click)="switchLanguage()"
+        >
+          <ng-icon name="lucideGlobe" size="16" />
+          <span class="uppercase">{{ currentLang() }}</span>
+        </button>
+
+        <!-- User menu -->
+        <div class="relative ml-1">
           <button
             type="button"
-            class="btn btn-icon"
-            aria-label="Toggle sidebar"
-            (click)="openSidebar(sidebarContent)"
+            class="flex h-9 items-center gap-2 rounded-md pl-1 pr-2 text-sm font-medium transition-colors hover:bg-secondary"
+            (click)="toggleUserMenu()"
           >
-            <i class="bi bi-list"></i>
+            @if (authService.currentUser()?.profile_image) {
+              <img
+                [src]="authService.currentUser()?.profile_image"
+                alt="User avatar"
+                class="size-7 rounded-full object-cover"
+              />
+            } @else {
+              <span class="flex size-7 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                <ng-icon name="lucideUser" size="16" />
+              </span>
+            }
+            <span class="hidden max-w-32 truncate lg:inline">{{ authService.currentUser()?.display_name }}</span>
+            <ng-icon name="lucideChevronDown" size="15" class="hidden text-muted-foreground lg:inline" />
           </button>
-        }
-        <div class="d-flex align-items-center">
-          <div class="logo-icon me-2 d-md-none">🎵</div>
-          <span class="navbar-brand mb-0 logo">Clear Songs</span>
-        </div>
-        <div class="ms-auto d-flex align-items-center gap-3">
-          <button class="btn btn-icon" (click)="switchLanguage()" [title]="currentLang() === 'en' ? 'Italiano' : 'English'">
-            <span style="font-size: 1.1rem;">{{ currentLang() === 'en' ? '🇮🇹' : '🇬🇧' }}</span>
-          </button>
-          <div class="dropdown">
-            <button class="btn btn-user" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              @if (authService.currentUser()?.profile_image) {
-                <img [src]="authService.currentUser()?.profile_image" alt="User Avatar" class="avatar">
-              }
-              @if (!authService.currentUser()?.profile_image) {
-                <i class="bi bi-person-circle"></i>
-              }
-              <span class="d-none d-lg-inline ms-2">{{ authService.currentUser()?.display_name }}</span>
-              <i class="bi bi-chevron-down ms-2 d-none d-lg-inline"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-              <li><h6 class="dropdown-header">{{ authService.currentUser()?.display_name }}</h6></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" (click)="logout()" role="button" tabindex="0" (keyup.enter)="logout()">
-                <i class="bi bi-box-arrow-right me-2"></i>{{ 'NAV.LOGOUT' | translate }}
-              </a></li>
-            </ul>
-          </div>
+
+          @if (userMenuOpen()) {
+            <div
+              class="fixed inset-0 z-30"
+              (click)="toggleUserMenu(false)"
+              aria-hidden="true"
+            ></div>
+            <div
+              class="absolute right-0 z-40 mt-2 w-52 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg"
+            >
+              <div class="border-b px-3 py-2.5">
+                <p class="truncate text-sm font-semibold">{{ authService.currentUser()?.display_name }}</p>
+                @if (authService.currentUser()?.email) {
+                  <p class="truncate text-xs text-muted-foreground">{{ authService.currentUser()?.email }}</p>
+                }
+              </div>
+              <button
+                type="button"
+                (click)="logout()"
+                class="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <ng-icon name="lucideLogOut" size="16" />
+                <span>{{ 'NAV.LOGOUT' | translate }}</span>
+              </button>
+            </div>
+          }
         </div>
       </div>
-    </nav>
+    </header>
 
-    <div class="content">
+    <!-- Content -->
+    <main class="relative flex-1 px-4 py-6 sm:px-6 lg:px-8">
       @if (loadingService.loading()) {
-        <div class="loading-overlay">
-          <div class="loading-spinner">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">{{ 'COMMON.LOADING' | translate }}</span>
-            </div>
-            <p class="mt-3 text-muted">{{ 'COMMON.LOADING' | translate }}</p>
-          </div>
+        <div
+          class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-sm"
+        >
+          <ng-icon name="lucideLoaderCircle" size="40" class="animate-spin text-primary" />
+          <p class="text-sm font-medium text-muted-foreground">{{ 'COMMON.LOADING' | translate }}</p>
         </div>
       }
       <router-outlet></router-outlet>
-    </div>
+    </main>
   </div>
 </div>

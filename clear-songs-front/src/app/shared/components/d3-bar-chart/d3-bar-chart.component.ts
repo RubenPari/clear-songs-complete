@@ -36,12 +36,13 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @Input() data: ChartData[] = [];
   @Input() height = 300;
+  // Theme-reactive: references design-system tokens that recompute on theme change.
   @Input() colors: string[] = [
-    'rgba(99, 102, 241, 0.8)',
-    'rgba(139, 92, 246, 0.8)',
-    'rgba(59, 130, 246, 0.8)',
-    'rgba(16, 185, 129, 0.8)',
-    'rgba(245, 158, 11, 0.8)'
+    'hsl(var(--primary))',
+    'hsl(var(--primary) / 0.85)',
+    'hsl(var(--primary) / 0.7)',
+    'hsl(var(--primary) / 0.55)',
+    'hsl(var(--primary) / 0.42)'
   ];
 
   private svg: any;
@@ -109,15 +110,17 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
       .attr('class', 'd3-chart-tooltip')
       .style('opacity', 0)
       .style('position', 'absolute')
-      .style('background', 'rgba(26, 26, 26, 0.95)')
-      .style('color', '#ffffff')
-      .style('padding', '12px 16px')
-      .style('border-radius', '8px')
+      .style('background', 'hsl(var(--popover))')
+      .style('color', 'hsl(var(--popover-foreground))')
+      .style('border', '1px solid hsl(var(--border))')
+      .style('padding', '10px 14px')
+      .style('border-radius', '10px')
       .style('font-size', '13px')
       .style('font-weight', '600')
+      .style('font-family', 'var(--font-display)')
       .style('pointer-events', 'none')
       .style('z-index', '10000')
-      .style('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.3)');
+      .style('box-shadow', '0 10px 30px -10px rgba(0, 0, 0, 0.35)');
 
     // Create scales
     this.xScale = d3.scaleBand()
@@ -162,9 +165,10 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
       .attr('dx', '-.8em')
       .attr('dy', '.15em')
       .attr('transform', 'rotate(-45)')
-      .style('font-size', '13px')
+      .style('font-size', '12px')
       .style('font-weight', '600')
-      .style('fill', '#64748b');
+      .style('font-family', 'var(--font-display)')
+      .style('fill', 'hsl(var(--muted-foreground))');
 
     // Update Y axis
     this.svg.select('.y-axis')
@@ -176,9 +180,10 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
           .tickFormat(d => d.toString())
       )
       .selectAll('text')
-      .style('font-size', '13px')
+      .style('font-size', '12px')
       .style('font-weight', '600')
-      .style('fill', '#64748b');
+      .style('font-family', 'var(--font-display)')
+      .style('fill', 'hsl(var(--muted-foreground))');
 
     // Update grid lines
     this.svg.select('.grid-lines')
@@ -191,7 +196,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
           .attr('x2', this.width)
           .attr('y1', (d: number) => this.yScale(d))
           .attr('y2', (d: number) => this.yScale(d))
-          .style('stroke', 'rgba(0, 0, 0, 0.05)')
+          .style('stroke', 'hsl(var(--border))')
           .style('stroke-width', 1)
           .style('stroke-dasharray', '3,3'),
         (update: any) => update
@@ -238,7 +243,7 @@ export class D3BarChartComponent implements OnChanges, AfterViewInit, OnDestroy 
 
         this.tooltip
           .style('opacity', 1)
-          .html(`<div style="margin-bottom: 4px; font-size: 14px;">${d.label}</div><div style="color: #a5b4fc;">${d.value} tracks</div>`)
+          .html(`<div style="margin-bottom: 4px; font-size: 14px;">${d.label}</div><div style="color: hsl(var(--primary));">${d.value} tracks</div>`)
           .style('left', (event.pageX + 10) + 'px')
           .style('top', (event.pageY - 10) + 'px');
       })

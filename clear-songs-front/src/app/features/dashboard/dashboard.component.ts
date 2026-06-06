@@ -1,18 +1,23 @@
 import { Component, computed, effect, inject, Injector, runInInjectionContext, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { Dialog } from '@angular/cdk/dialog';
 import { filter, finalize, switchMap } from 'rxjs/operators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgIcon } from '@ng-icons/core';
 
 import { ArtistSummary } from '../../core/models/artist.model';
 import { LoadingService } from '../../core/services/loading.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { TrackService } from '../../core/services/track.service';
-import { modalResult$, openConfirmDialog } from '../../core/utils/modal-helper';
+import { baseDialogConfig, openConfirmDialog } from '../../core/utils/modal-helper';
 import { D3BarChartComponent } from '../../shared/components/d3-bar-chart/d3-bar-chart.component';
 import { SkeletonChartComponent, SkeletonStatComponent, SkeletonTableComponent } from '../../shared/components/skeleton/skeleton-components';
-import { ArtistTracksModalComponent } from '../tracks/artist-tracks-modal.component';
+import { ArtistTracksModalComponent, ArtistTracksDialogData } from '../tracks/artist-tracks-modal.component';
+import { ButtonDirective } from '../../shared/ui/button.directive';
+import { CardDirective } from '../../shared/ui/card.directive';
+import { InputDirective } from '../../shared/ui/input.directive';
+import { BadgeDirective } from '../../shared/ui/badge.directive';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,8 +31,12 @@ import { ArtistTracksModalComponent } from '../tracks/artist-tracks-modal.compon
     SkeletonStatComponent,
     SkeletonTableComponent,
     SkeletonChartComponent,
-    NgbModule,
-    TranslateModule
+    TranslateModule,
+    NgIcon,
+    ButtonDirective,
+    CardDirective,
+    InputDirective,
+    BadgeDirective,
   ]
 })
 export class DashboardComponent {
@@ -35,7 +44,7 @@ export class DashboardComponent {
   private trackService = inject(TrackService);
   private notificationService = inject(NotificationService);
   public loadingService = inject(LoadingService);
-  private modalService = inject(NgbModal);
+  private dialog = inject(Dialog);
   private translate = inject(TranslateService);
 
   searchFilter = signal<string>('');
@@ -129,11 +138,11 @@ export class DashboardComponent {
   });
 
   public chartColors: string[] = [
-    'rgba(29, 185, 84, 0.8)',
-    'rgba(29, 200, 100, 0.8)',
-    'rgba(0, 212, 255, 0.8)',
-    'rgba(16, 185, 129, 0.8)',
-    'rgba(245, 158, 11, 0.8)'
+    'hsl(var(--primary))',
+    'hsl(var(--primary) / 0.85)',
+    'hsl(var(--primary) / 0.7)',
+    'hsl(var(--primary) / 0.55)',
+    'hsl(var(--primary) / 0.42)'
   ];
 
   filteredArtists = computed(() => {
@@ -287,27 +296,24 @@ export class DashboardComponent {
 
   // Opens artist tracks.
   openArtistTracks(artist: ArtistSummary): void {
-    const modalRef = this.modalService.open(ArtistTracksModalComponent, {
-      size: 'lg',
-      centered: true,
-      scrollable: true,
-    });
-    modalRef.componentInstance.artist = artist;
+    const ref = this.dialog.open<boolean, ArtistTracksDialogData>(
+      ArtistTracksModalComponent,
+      baseDialogConfig<ArtistTracksDialogData>({ artist }),
+    );
 
-    modalResult$<boolean>(modalRef, false)
-      .pipe(filter((tracksChanged) => tracksChanged))
+    ref.closed
+      .pipe(filter((tracksChanged) => tracksChanged === true))
       .subscribe(() => this.loadTrackSummary());
   }
 
   // Deletes artist tracks.
   deleteArtistTracks(artist: ArtistSummary): void {
-    openConfirmDialog(this.modalService, {
+    openConfirmDialog(this.dialog, {
       title: this.translate.instant('DASHBOARD.DELETE_ARTIST_TITLE'),
       message: this.translate.instant('DASHBOARD.DELETE_ARTIST_MSG', { count: artist.count, name: artist.name }),
       confirmText: this.translate.instant('COMMON.DELETE'),
       cancelText: this.translate.instant('COMMON.CANCEL'),
-      size: 'md',
-      centered: true,
+      danger: true,
     })
       .pipe(
         filter((confirmed) => confirmed),

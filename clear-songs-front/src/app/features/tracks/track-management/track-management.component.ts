@@ -1,14 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Dialog } from '@angular/cdk/dialog';
 import { filter, finalize, switchMap } from 'rxjs/operators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgIcon } from '@ng-icons/core';
 
 import { LoadingService } from '../../../core/services/loading.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { TrackService } from '../../../core/services/track.service';
 import { openConfirmDialog } from '../../../core/utils/modal-helper';
+import { ButtonDirective } from '../../../shared/ui/button.directive';
+import { CardDirective } from '../../../shared/ui/card.directive';
+import { InputDirective } from '../../../shared/ui/input.directive';
 
 interface PresetRange {
   readonly label: string;
@@ -24,7 +28,11 @@ interface PresetRange {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TranslateModule
+    TranslateModule,
+    NgIcon,
+    ButtonDirective,
+    CardDirective,
+    InputDirective,
   ]
 })
 export class TrackManagementComponent {
@@ -32,7 +40,7 @@ export class TrackManagementComponent {
   private trackService = inject(TrackService);
   private notificationService = inject(NotificationService);
   public loadingService = inject(LoadingService);
-  private modalService = inject(NgbModal);
+  private dialog = inject(Dialog);
   private translate = inject(TranslateService);
 
   rangeForm: FormGroup<{ min: FormControl<number | null>; max: FormControl<number | null> }>;
@@ -86,13 +94,12 @@ export class TrackManagementComponent {
       return;
     }
 
-    openConfirmDialog(this.modalService, {
+    openConfirmDialog(this.dialog, {
       title: this.translate.instant('TRACKS.DELETE_TITLE'),
       message,
       confirmText: this.translate.instant('COMMON.DELETE'),
       cancelText: this.translate.instant('COMMON.CANCEL'),
-      size: 'md',
-      centered: true,
+      danger: true,
     })
       .pipe(
         filter((confirmed) => confirmed),

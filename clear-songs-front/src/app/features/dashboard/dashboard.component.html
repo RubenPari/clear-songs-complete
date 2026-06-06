@@ -1,326 +1,315 @@
-<div class="dashboard-container">
-  <div class="dashboard-header">
-    <div class="header-content">
-      <div>
-        <h1 class="page-title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
-        <p class="page-subtitle">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
-      </div>
-      <div class="header-actions">
-        <button type="button" class="btn btn-refresh" (click)="loadTrackSummary()">
-          <i class="bi bi-arrow-clockwise"></i>
-          <span>{{ 'DASHBOARD.REFRESH' | translate }}</span>
-        </button>
-      </div>
+<div class="mx-auto max-w-7xl">
+  <!-- Header -->
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+      <p class="mt-1 text-sm text-muted-foreground">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
     </div>
+    <button appBtn variant="outline" (click)="loadTrackSummary()">
+      <ng-icon name="lucideArrowRight" size="16" class="rotate-90" />
+      <span>{{ 'DASHBOARD.REFRESH' | translate }}</span>
+    </button>
   </div>
 
   @if (isLoading()) {
-    <!-- Skeleton Loading State -->
-    <div class="stats-grid">
-      <app-skeleton-stat></app-skeleton-stat>
-      <app-skeleton-stat></app-skeleton-stat>
-      <app-skeleton-stat></app-skeleton-stat>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <app-skeleton-stat />
+      <app-skeleton-stat />
+      <app-skeleton-stat />
     </div>
-
-    <div class="dashboard-content">
-      <div class="chart-section">
-        <app-skeleton-chart></app-skeleton-chart>
-      </div>
-      <div class="table-section">
-        <app-skeleton-table [rowCount]="5"></app-skeleton-table>
-      </div>
+    <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
+      <div class="lg:col-span-2"><app-skeleton-chart /></div>
+      <div class="lg:col-span-3"><app-skeleton-table [rowCount]="5" /></div>
     </div>
   } @else {
-    <!-- Content Loaded State -->
-    <div class="stats-grid">
-      <div class="stat-card stat-card-primary">
-        <div class="stat-icon">
-          <i class="bi bi-people"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ totalArtists() }}</div>
-          <div class="stat-label">{{ 'DASHBOARD.TOTAL_ARTISTS' | translate }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-card-success">
-        <div class="stat-icon">
-          <i class="bi bi-music-note-list"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ totalTracks() }}</div>
-          <div class="stat-label">{{ 'DASHBOARD.TOTAL_TRACKS' | translate }}</div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div appCard class="flex items-center gap-4 p-5">
+        <span class="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ng-icon name="lucideUser" size="22" />
+        </span>
+        <div>
+          <div class="font-display text-2xl font-bold">{{ totalArtists() }}</div>
+          <div class="text-sm text-muted-foreground">{{ 'DASHBOARD.TOTAL_ARTISTS' | translate }}</div>
         </div>
       </div>
-
-      <div class="stat-card stat-card-info">
-        <div class="stat-icon">
-          <i class="bi bi-graph-up"></i>
+      <div appCard class="flex items-center gap-4 p-5">
+        <span class="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ng-icon name="lucideListMusic" size="22" />
+        </span>
+        <div>
+          <div class="font-display text-2xl font-bold">{{ totalTracks() }}</div>
+          <div class="text-sm text-muted-foreground">{{ 'DASHBOARD.TOTAL_TRACKS' | translate }}</div>
         </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ totalArtists() > 0 ? (totalTracks() / totalArtists() | number : '1.1-1') : '0' }}</div>
-          <div class="stat-label">{{ 'DASHBOARD.AVG_TRACKS' | translate }}</div>
+      </div>
+      <div appCard class="flex items-center gap-4 p-5">
+        <span class="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ng-icon name="lucideListFilter" size="22" />
+        </span>
+        <div>
+          <div class="font-display text-2xl font-bold">
+            {{ totalArtists() > 0 ? (totalTracks() / totalArtists() | number: '1.1-1') : '0' }}
+          </div>
+          <div class="text-sm text-muted-foreground">{{ 'DASHBOARD.AVG_TRACKS' | translate }}</div>
         </div>
       </div>
     </div>
 
-    <div class="dashboard-content">
-      <div class="chart-section">
-        <div class="modern-card">
-          <div class="card-header-modern">
-            <div class="card-header-content">
-              <i class="bi bi-bar-chart-fill me-2"></i>
-              <h5 class="card-title-modern">{{ 'DASHBOARD.TOP_5_CHART' | translate }}</h5>
-            </div>
-          </div>
-          <div class="card-body-modern">
-            <app-d3-bar-chart
-              [data]="chartData()"
-              [height]="320"
-              [colors]="chartColors">
-            </app-d3-bar-chart>
-          </div>
+    <!-- Chart + Table -->
+    <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
+      <!-- Chart -->
+      <div appCard class="lg:col-span-2">
+        <div class="flex items-center gap-2 border-b px-5 py-4">
+          <ng-icon name="lucideListFilter" size="18" class="text-primary" />
+          <h2 class="font-display text-base font-semibold">{{ 'DASHBOARD.TOP_5_CHART' | translate }}</h2>
+        </div>
+        <div class="p-4">
+          <app-d3-bar-chart [data]="chartData()" [height]="320" [colors]="chartColors" />
         </div>
       </div>
 
-        <div class="table-section">
-        <div class="modern-card">
-          <div class="card-header-modern">
-            <div class="card-header-content">
-              <i class="bi bi-list-ul me-2"></i>
-              <h5 class="card-title-modern">{{ 'DASHBOARD.ARTISTS_SUMMARY' | translate }}</h5>
-            </div>
-          </div>
-          <div class="card-body-modern">
-            <div class="filters-section">
-              <div class="filters-row">
-                <div class="search-container">
-                  <div class="search-input-wrapper">
-                    <i class="bi bi-search search-icon"></i>
-                    <input
-                      type="text"
-                      class="form-control search-input"
-                      [placeholder]="'DASHBOARD.SEARCH_PLACEHOLDER' | translate"
-                      [value]="searchFilter()"
-                      (input)="applyFilter($event)"
-                    />
-                  </div>
-                </div>
-                
-                <div class="genre-filter">
-                  <div class="select-wrapper">
-                    <i class="bi bi-music-note-list select-icon"></i>
-                    <select
-                      class="form-select-modern"
-                      [ngModel]="selectedGenre()"
-                      (ngModelChange)="selectedGenre.set($event)"
-                      [ngModelOptions]="{standalone: true}"
-                    >
-                      <option value="">{{ 'DASHBOARD.ALL_GENRES' | translate }}</option>
-                      @for (genre of availableGenres(); track genre) {
-                        <option [value]="genre">{{ genre }}</option>
-                      }
-                    </select>
-                    @if (selectedGenre()) {
-                      <button
-                        type="button"
-                        class="btn-clear-select"
-                        (click)="clearGenre($event)"
-                      >
-                        <i class="bi bi-x"></i>
-                      </button>
-                    }
-                  </div>
-                </div>
-                
-                <button class="btn btn-reset-filters" (click)="resetFilters()" type="button">
-                  <i class="bi bi-arrow-counterclockwise"></i>
-                </button>
+      <!-- Table -->
+      <div appCard class="lg:col-span-3">
+        <div class="flex items-center gap-2 border-b px-5 py-4">
+          <ng-icon name="lucideListMusic" size="18" class="text-primary" />
+          <h2 class="font-display text-base font-semibold">{{ 'DASHBOARD.ARTISTS_SUMMARY' | translate }}</h2>
+        </div>
+
+        <div class="space-y-4 p-5">
+          <!-- Filters -->
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative min-w-48 flex-1">
+                <ng-icon
+                  name="lucideSearch"
+                  size="16"
+                  class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <input
+                  appInput
+                  type="text"
+                  class="pl-9"
+                  [placeholder]="'DASHBOARD.SEARCH_PLACEHOLDER' | translate"
+                  [value]="searchFilter()"
+                  (input)="applyFilter($event)"
+                />
               </div>
-              
-              <div class="range-filter">
-                <div class="range-filter-row">
-                  <div class="input-group">
-                    <label for="range-min-input" class="input-label">{{ 'DASHBOARD.MIN' | translate }}</label>
-                    <input
-                      id="range-min-input"
-                      type="number"
-                      class="form-control-modern"
-                      [min]="0"
-                      [max]="maxTrackCount()"
-                      [step]="1"
-                      [ngModel]="rangeMinDraft()"
-                      (ngModelChange)="rangeMinDraft.set(coerceRangeDraft($event))"
-                      [ngModelOptions]="{standalone: true}"
-                    />
-                  </div>
-                  <div class="input-separator">
-                    <span class="separator-text">—</span>
-                  </div>
-                  <div class="input-group">
-                    <label for="range-max-input" class="input-label">{{ 'DASHBOARD.MAX' | translate }}</label>
-                    <input
-                      id="range-max-input"
-                      type="number"
-                      class="form-control-modern"
-                      [min]="0"
-                      [max]="maxTrackCount()"
-                      [step]="1"
-                      [ngModel]="rangeMaxDraft()"
-                      (ngModelChange)="rangeMaxDraft.set(coerceRangeDraft($event))"
-                      [ngModelOptions]="{standalone: true}"
-                    />
-                  </div>
-                  <button class="btn btn-range-submit" type="button" (click)="applyRangeFilter()">
-                    {{ 'DASHBOARD.RANGE_SUBMIT' | translate }}
+
+              <div class="relative">
+                <select
+                  appInput
+                  class="w-auto min-w-40 pr-9"
+                  [ngModel]="selectedGenre()"
+                  (ngModelChange)="selectedGenre.set($event)"
+                  [ngModelOptions]="{ standalone: true }"
+                >
+                  <option value="">{{ 'DASHBOARD.ALL_GENRES' | translate }}</option>
+                  @for (genre of availableGenres(); track genre) {
+                    <option [value]="genre">{{ genre }}</option>
+                  }
+                </select>
+                @if (selectedGenre()) {
+                  <button
+                    type="button"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    (click)="clearGenre($event)"
+                  >
+                    <ng-icon name="lucideX" size="15" />
                   </button>
-                </div>
-              </div>
-            </div>
-
-            @if (filteredArtists().length === 0) {
-              <div class="empty-state">
-                <div class="empty-state-icon-wrapper">
-                  <i class="bi bi-music-note-beamed empty-state-icon"></i>
-                </div>
-                <h4 class="empty-state-title">{{ 'DASHBOARD.NO_ARTISTS_TITLE' | translate }}</h4>
-                <p class="empty-state-message">{{ 'DASHBOARD.NO_ARTISTS_MSG' | translate }}</p>
-              </div>
-            }
-
-            @if (filteredArtists().length > 0) {
-              <!-- Desktop Table View -->
-              <div class="table-wrapper">
-                <table class="table-modern">
-                  <thead>
-                    <tr>
-                      <th (click)="sortTable('name')" class="sortable">
-                        <div class="th-content">
-                          <span>{{ 'DASHBOARD.COL_ARTIST' | translate }}</span>
-                          @if (sortColumn() === 'name') {
-                            <i class="bi" [class.bi-arrow-up]="sortDirection() === 'asc'" [class.bi-arrow-down]="sortDirection() === 'desc'"></i>
-                          } @else {
-                            <i class="bi bi-arrow-down-up text-muted"></i>
-                          }
-                        </div>
-                      </th>
-                      <th (click)="sortTable('count')" class="sortable">
-                        <div class="th-content">
-                          <span>{{ 'DASHBOARD.COL_TRACKS' | translate }}</span>
-                          @if (sortColumn() === 'count') {
-                            <i class="bi" [class.bi-arrow-up]="sortDirection() === 'asc'" [class.bi-arrow-down]="sortDirection() === 'desc'"></i>
-                          } @else {
-                            <i class="bi bi-arrow-down-up text-muted"></i>
-                          }
-                        </div>
-                      </th>
-                      <th>{{ 'DASHBOARD.COL_ACTIONS' | translate }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (artist of paginatedArtists(); track artist.id) {
-                      <tr (click)="openArtistTracks(artist)" class="clickable-row">
-                        <td>
-                          <div class="artist-name">
-                            @if (artist.image_url) {
-                              <img
-                                [src]="artist.image_url"
-                                [alt]="artist.name"
-                                class="artist-image"
-                                (error)="artist.image_url = undefined"
-                              />
-                            }
-                            @if (!artist.image_url) {
-                              <i class="bi bi-person-circle me-2"></i>
-                            }
-                            <span>{{ artist.name }}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span class="badge-modern" [class.badge-success]="artist.count > 20" [class.badge-primary]="artist.count <= 20 && artist.count > 10" [class.badge-secondary]="artist.count <= 10">
-                            {{ artist.count }}
-                          </span>
-                        </td>
-                        <td (click)="$event.stopPropagation()">
-                          <button
-                            class="btn btn-action-danger"
-                            (click)="deleteArtistTracks(artist)"
-                            [title]="('COMMON.DELETE_ALL_FROM' | translate) + artist.name"
-                          >
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Mobile Cards View -->
-              <div class="mobile-cards">
-                @for (artist of paginatedArtists(); track artist.id) {
-                  <div class="artist-card" role="button" tabindex="0" (click)="openArtistTracks(artist)" (keyup.enter)="openArtistTracks(artist)">
-                    <div class="artist-card-header">
-                      @if (artist.image_url) {
-                        <img
-                          [src]="artist.image_url"
-                          [alt]="artist.name"
-                          class="artist-image"
-                          (error)="artist.image_url = undefined"
-                        />
-                      }
-                      @if (!artist.image_url) {
-                        <i class="bi bi-person-circle" style="font-size: 48px; color: #94a3b8;"></i>
-                      }
-                      <div class="artist-info">
-                        <div class="artist-name">{{ artist.name }}</div>
-                        <span class="artist-count" [class.badge-success]="artist.count > 20" [class.badge-primary]="artist.count <= 20 && artist.count > 10" [class.badge-secondary]="artist.count <= 10">
-                          {{ artist.count }} {{ 'DASHBOARD.TRACKS_LABEL' | translate }}
-                        </span>
-                      </div>
-                      <button
-                        class="delete-btn"
-                        (click)="deleteArtistTracks(artist); $event.stopPropagation()"
-                        [title]="('COMMON.DELETE_ALL_FROM' | translate) + artist.name"
-                      >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </div>
                 }
               </div>
 
-              @if (totalPages() > 1) {
-                <div class="pagination-wrapper">
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination-modern">
-                      <li class="page-item-modern" [class.disabled]="currentPage() === 1">
-                        <a class="page-link-modern" role="button" tabindex="0" (click)="changePage(currentPage() - 1)" (keyup.enter)="changePage(currentPage() - 1)">
-                          <i class="bi bi-chevron-left"></i>
-                          <span>{{ 'DASHBOARD.PREVIOUS' | translate }}</span>
-                        </a>
-                      </li>
-                      @for (page of visiblePages(); track page) {
-                        <li class="page-item-modern" [class.active]="page !== '...' && currentPage() === +page" [class.disabled]="page === '...'">
-                          @if (page === '...') {
-                            <span class="page-link-modern">...</span>
+              <button appBtn variant="outline" size="icon" (click)="resetFilters()" type="button" title="Reset">
+                <ng-icon name="lucideArrowRight" size="16" class="-scale-x-100" />
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-end gap-2">
+              <div class="flex flex-col gap-1">
+                <label for="range-min-input" class="text-xs font-medium text-muted-foreground">{{ 'DASHBOARD.MIN' | translate }}</label>
+                <input
+                  appInput
+                  id="range-min-input"
+                  type="number"
+                  class="w-24"
+                  [min]="0"
+                  [max]="maxTrackCount()"
+                  [step]="1"
+                  [ngModel]="rangeMinDraft()"
+                  (ngModelChange)="rangeMinDraft.set(coerceRangeDraft($event))"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              </div>
+              <span class="pb-2.5 text-muted-foreground">—</span>
+              <div class="flex flex-col gap-1">
+                <label for="range-max-input" class="text-xs font-medium text-muted-foreground">{{ 'DASHBOARD.MAX' | translate }}</label>
+                <input
+                  appInput
+                  id="range-max-input"
+                  type="number"
+                  class="w-24"
+                  [min]="0"
+                  [max]="maxTrackCount()"
+                  [step]="1"
+                  [ngModel]="rangeMaxDraft()"
+                  (ngModelChange)="rangeMaxDraft.set(coerceRangeDraft($event))"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              </div>
+              <button appBtn variant="secondary" type="button" (click)="applyRangeFilter()">
+                {{ 'DASHBOARD.RANGE_SUBMIT' | translate }}
+              </button>
+            </div>
+          </div>
+
+          @if (filteredArtists().length === 0) {
+            <div class="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <span class="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <ng-icon name="lucideMusic" size="26" />
+              </span>
+              <h3 class="font-display text-lg font-semibold">{{ 'DASHBOARD.NO_ARTISTS_TITLE' | translate }}</h3>
+              <p class="max-w-sm text-sm text-muted-foreground">{{ 'DASHBOARD.NO_ARTISTS_MSG' | translate }}</p>
+            </div>
+          } @else {
+            <!-- Desktop table -->
+            <div class="hidden overflow-hidden rounded-lg border md:block">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                    <th class="cursor-pointer px-4 py-3 text-left font-semibold" (click)="sortTable('name')">
+                      <span class="inline-flex items-center gap-1">
+                        {{ 'DASHBOARD.COL_ARTIST' | translate }}
+                        @if (sortColumn() === 'name') {
+                          <ng-icon [name]="sortDirection() === 'asc' ? 'lucideChevronDown' : 'lucideChevronRight'" size="13" class="rotate-180" />
+                        }
+                      </span>
+                    </th>
+                    <th class="cursor-pointer px-4 py-3 text-left font-semibold" (click)="sortTable('count')">
+                      <span class="inline-flex items-center gap-1">
+                        {{ 'DASHBOARD.COL_TRACKS' | translate }}
+                        @if (sortColumn() === 'count') {
+                          <ng-icon [name]="sortDirection() === 'asc' ? 'lucideChevronDown' : 'lucideChevronRight'" size="13" class="rotate-180" />
+                        }
+                      </span>
+                    </th>
+                    <th class="px-4 py-3 text-right font-semibold">{{ 'DASHBOARD.COL_ACTIONS' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (artist of paginatedArtists(); track artist.id) {
+                    <tr class="cursor-pointer border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/40" (click)="openArtistTracks(artist)">
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                          @if (artist.image_url) {
+                            <img [src]="artist.image_url" [alt]="artist.name" class="size-9 rounded-full object-cover" (error)="artist.image_url = undefined" />
                           } @else {
-                            <a class="page-link-modern" role="button" tabindex="0" (click)="changePage(+page)" (keyup.enter)="changePage(+page)">{{ page }}</a>
+                            <span class="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                              <ng-icon name="lucideUser" size="16" />
+                            </span>
                           }
-                        </li>
-                      }
-                      <li class="page-item-modern" [class.disabled]="currentPage() === totalPages()">
-                        <a class="page-link-modern" role="button" tabindex="0" (click)="changePage(currentPage() + 1)" (keyup.enter)="changePage(currentPage() + 1)">
-                          <span>{{ 'DASHBOARD.NEXT' | translate }}</span>
-                          <i class="bi bi-chevron-right"></i>
-                        </a>
-                      </li>
-                    </ul>
-                  </nav>
+                          <span class="font-medium">{{ artist.name }}</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <span appBadge [variant]="artist.count > 20 ? 'default' : (artist.count > 10 ? 'secondary' : 'muted')">{{ artist.count }}</span>
+                      </td>
+                      <td class="px-4 py-3 text-right" (click)="$event.stopPropagation()">
+                        <button
+                          appBtn
+                          variant="ghost"
+                          size="icon"
+                          class="size-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          (click)="deleteArtistTracks(artist)"
+                          [title]="('COMMON.DELETE_ALL_FROM' | translate) + artist.name"
+                        >
+                          <ng-icon name="lucideTrash2" size="16" />
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Mobile cards -->
+            <div class="space-y-2 md:hidden">
+              @for (artist of paginatedArtists(); track artist.id) {
+                <div
+                  appCard
+                  class="flex items-center gap-3 p-3"
+                  role="button"
+                  tabindex="0"
+                  (click)="openArtistTracks(artist)"
+                  (keyup.enter)="openArtistTracks(artist)"
+                >
+                  @if (artist.image_url) {
+                    <img [src]="artist.image_url" [alt]="artist.name" class="size-11 rounded-full object-cover" (error)="artist.image_url = undefined" />
+                  } @else {
+                    <span class="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                      <ng-icon name="lucideUser" size="18" />
+                    </span>
+                  }
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate font-medium">{{ artist.name }}</div>
+                    <span appBadge [variant]="artist.count > 20 ? 'default' : (artist.count > 10 ? 'secondary' : 'muted')" class="mt-1">
+                      {{ artist.count }} {{ 'DASHBOARD.TRACKS_LABEL' | translate }}
+                    </span>
+                  </div>
+                  <button
+                    appBtn
+                    variant="ghost"
+                    size="icon"
+                    class="size-9 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    (click)="deleteArtistTracks(artist); $event.stopPropagation()"
+                    [title]="('COMMON.DELETE_ALL_FROM' | translate) + artist.name"
+                  >
+                    <ng-icon name="lucideTrash2" size="16" />
+                  </button>
                 </div>
               }
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages() > 1) {
+              <div class="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+                <button
+                  appBtn
+                  variant="outline"
+                  size="sm"
+                  [disabled]="currentPage() === 1"
+                  (click)="changePage(currentPage() - 1)"
+                >
+                  <ng-icon name="lucideChevronLeft" size="15" />
+                  <span class="hidden sm:inline">{{ 'DASHBOARD.PREVIOUS' | translate }}</span>
+                </button>
+                @for (page of visiblePages(); track $index) {
+                  @if (page === '...') {
+                    <span class="px-2 text-muted-foreground">…</span>
+                  } @else {
+                    <button
+                      appBtn
+                      [variant]="currentPage() === +page ? 'default' : 'outline'"
+                      size="icon"
+                      class="size-9"
+                      (click)="changePage(+page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                }
+                <button
+                  appBtn
+                  variant="outline"
+                  size="sm"
+                  [disabled]="currentPage() === totalPages()"
+                  (click)="changePage(currentPage() + 1)"
+                >
+                  <span class="hidden sm:inline">{{ 'DASHBOARD.NEXT' | translate }}</span>
+                  <ng-icon name="lucideChevronRight" size="15" />
+                </button>
+              </div>
             }
-          </div>
+          }
         </div>
       </div>
     </div>

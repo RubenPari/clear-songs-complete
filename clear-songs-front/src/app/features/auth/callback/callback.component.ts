@@ -1,40 +1,21 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgIcon } from '@ng-icons/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-callback',
   template: `
-    <div class="callback-container">
-      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">{{ 'COMMON.LOADING' | translate }}</span>
-      </div>
-      <p>{{ 'CALLBACK.AUTHENTICATING' | translate }}</p>
+    <div class="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-foreground">
+      <ng-icon name="lucideLoaderCircle" size="44" class="animate-spin text-primary" />
+      <p class="text-base text-muted-foreground">{{ 'CALLBACK.AUTHENTICATING' | translate }}</p>
     </div>
   `,
-  styles: [
-    `
-      .callback-container {
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        p {
-          margin-top: 20px;
-          font-size: 18px;
-          color: #666;
-        }
-      }
-    `,
-  ],
   standalone: true,
-  imports: [CommonModule, TranslateModule]
+  imports: [TranslateModule, NgIcon]
 })
 export class CallbackComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
