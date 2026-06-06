@@ -42,6 +42,8 @@ services:
         SPOTIFY_CLIENT_ID: ${CLIENT_ID}
         SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-http://127.0.0.1:4200/callback}
     container_name: clear-songs-front
+    environment:
+      NGINX_API_URL: http://api:3000
     ports:
       - "4200:8080"
     depends_on:

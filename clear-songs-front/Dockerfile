@@ -23,6 +23,6 @@ RUN npm run env && npm run build
 FROM nginx:alpine
 # In Angular 19/20 with 'application' builder, output is in dist/clear-songs-front/browser
 COPY --from=build /app/dist/clear-songs-front/browser /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
