@@ -4,19 +4,19 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// LoginUseCase handles the business logic for initiating OAuth login
+// LoginUseCase handles the business logic for initiating OAuth login.
 type LoginUseCase struct {
 	oauthConfig *oauth2.Config
 }
 
-// Creates login use case.
+// NewLoginUseCase creates a LoginUseCase.
 func NewLoginUseCase(oauthConfig *oauth2.Config) *LoginUseCase {
 	return &LoginUseCase{
 		oauthConfig: oauthConfig,
 	}
 }
 
-// Execute.
+// Execute returns the Spotify authorization URL for the given state.
 func (uc *LoginUseCase) Execute(state string) string {
 	if state == "" {
 		state = "state"

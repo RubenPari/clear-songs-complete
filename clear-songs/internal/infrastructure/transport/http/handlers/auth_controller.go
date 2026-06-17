@@ -102,7 +102,7 @@ func (ac *AuthController) IsAuth(c *gin.Context) {
 
 	ac.JSONSuccess(c, gin.H{
 		"user": gin.H{
-			"spotify_id":    userInfo.SpotifyID,
+			"spotify_id":    userInfo.ID,
 			"display_name":  userInfo.DisplayName,
 			"email":         userInfo.Email,
 			"profile_image": userInfo.ProfileImage,
