@@ -1,22 +1,14 @@
 /**
  * Root Application Component
- * 
- * This is the main entry point component for the Clear Songs Angular application.
- * It serves as the root component that wraps the entire application and provides
- * the router outlet for navigation between different views.
- * 
- * The component is configured as standalone, meaning it doesn't require an NgModule
- * and can directly import its dependencies. This follows Angular's modern standalone
- * component architecture introduced in Angular 14+.
- * 
- * @component
- * @selector app-root
- * @standalone true
+ *
+ * Standalone root component that bootstraps the application and provides
+ * the router outlet. Initial locale and theme preferences are applied here
+ * so the login/callback routes already respect the user's choices.
  */
 import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { TranslateService } from '@ngx-translate/core';
+import { isPlatformBrowser } from '@angular/common';
+import { PreferencesService } from './core/services/preferences.service';
 
 @Component({
   selector: 'app-root',
@@ -26,39 +18,16 @@ import { TranslateService } from '@ngx-translate/core';
   imports: [RouterOutlet]
 })
 export class App {
-  /**
-   * Application title
-   * Used for identification and potentially in the browser title bar
-   */
   title = 'clear-songs-front';
-  
-  private translate = inject(TranslateService);
+
+  private preferencesService = inject(PreferencesService);
   private platformId = inject(PLATFORM_ID);
-  private document = inject(DOCUMENT);
 
   constructor() {
-    this.translate.addLangs(['en', 'it']);
-    this.translate.setDefaultLang('en');
+    this.preferencesService.initLocale();
 
-    // Check if preference exists, otherwise use browser language or default
     if (isPlatformBrowser(this.platformId)) {
-      const browserLang = this.translate.getBrowserLang() || 'en';
-      const savedLang = localStorage.getItem('app-lang-preference');
-
-      const langToUse = savedLang && ['en', 'it'].includes(savedLang)
-        ? savedLang
-        : (['en', 'it'].includes(browserLang) ? browserLang : 'en');
-
-      this.translate.use(langToUse);
-
-      // Apply the saved (or system) theme app-wide, before any route renders,
-      // so login/callback also respect dark mode. The main layout keeps it in sync.
-      const savedTheme = localStorage.getItem('app-theme-preference');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-      this.document.documentElement.classList.toggle('dark', isDark);
-    } else {
-      this.translate.use('en');
+      this.preferencesService.initTheme();
     }
   }
 }
