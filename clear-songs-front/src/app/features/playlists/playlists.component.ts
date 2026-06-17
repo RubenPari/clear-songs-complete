@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
-import { filter, finalize, switchMap } from 'rxjs/operators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgIcon } from '@ng-icons/core';
 
@@ -10,7 +9,7 @@ import { UserPlaylist } from '../../core/models/artist.model';
 import { LoadingService } from '../../core/services/loading.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PlaylistService } from '../../core/services/playlist.service';
-import { openConfirmDialog } from '../../core/utils/modal-helper';
+import { confirmAndRunWithNotify } from '../../core/utils/confirm-run.helper';
 import { ButtonDirective } from '../../shared/ui/button.directive';
 import { CardDirective } from '../../shared/ui/card.directive';
 
@@ -88,36 +87,36 @@ export class PlaylistsComponent {
 
     const copy = this.actionCopy()[action];
 
-    openConfirmDialog(this.dialog, {
-      title: copy.title,
-      message: `${copy.message}\n\n${this.translate.instant('PLAYLISTS.PLAYLIST_ID')}: ${playlistId}`,
-      confirmText: copy.confirmText,
-      cancelText: this.translate.instant('PLAYLISTS.ACTION_CANCEL'),
-      danger: action === 'playlistAndLibrary',
-    })
-      .pipe(
-        filter((confirmed) => confirmed),
-        switchMap(() => {
-          this.loadingService.show();
-          const request$ =
-            action === 'playlist'
-              ? this.playlistService.deleteAllPlaylistTracks(playlistId)
-              : this.playlistService.deleteAllPlaylistAndUserTracks(playlistId);
-
-          return request$.pipe(finalize(() => this.loadingService.hide()));
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.notificationService.success(copy.success);
+    confirmAndRunWithNotify(
+      {
+        title: copy.title,
+        message: `${copy.message}\n\n${this.translate.instant('PLAYLISTS.PLAYLIST_ID')}: ${playlistId}`,
+        confirmText: copy.confirmText,
+        cancelText: this.translate.instant('PLAYLISTS.ACTION_CANCEL'),
+        danger: action === 'playlistAndLibrary',
+      },
+      () =>
+        action === 'playlist'
+          ? this.playlistService.deleteAllPlaylistTracks(playlistId)
+          : this.playlistService.deleteAllPlaylistAndUserTracks(playlistId),
+      {
+        dialog: this.dialog,
+        loadingService: this.loadingService,
+        notificationService: this.notificationService,
+        successMessage: copy.success,
+        errorMessage: copy.error,
+        onSuccess: () => {
           this.lastOperation.set({ playlistId, action, timestamp: Date.now() });
           this.selectedPlaylistId.set(null);
         },
-        error: (error) => {
-          const rawError: ApiError | string | undefined = error?.error?.error;
+        onError: (error) => {
+          const rawError: ApiError | string | undefined = (error as { error?: { error?: ApiError | string } })?.error?.error;
           const serverMessage = typeof rawError === 'string' ? rawError : rawError?.message;
-          this.notificationService.error(serverMessage || copy.error);
+          if (serverMessage) {
+            this.notificationService.error(serverMessage);
+          }
         },
-      });
+      },
+    ).subscribe();
   }
 }

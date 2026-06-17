@@ -2,14 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Dialog } from '@angular/cdk/dialog';
-import { filter, finalize, switchMap } from 'rxjs/operators';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgIcon } from '@ng-icons/core';
 
 import { LoadingService } from '../../../core/services/loading.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { TrackService } from '../../../core/services/track.service';
-import { openConfirmDialog } from '../../../core/utils/modal-helper';
+import { confirmAndRunWithNotify } from '../../../core/utils/confirm-run.helper';
 import { ButtonDirective } from '../../../shared/ui/button.directive';
 import { CardDirective } from '../../../shared/ui/card.directive';
 import { InputDirective } from '../../../shared/ui/input.directive';
@@ -94,33 +93,24 @@ export class TrackManagementComponent {
       return;
     }
 
-    openConfirmDialog(this.dialog, {
-      title: this.translate.instant('TRACKS.DELETE_TITLE'),
-      message,
-      confirmText: this.translate.instant('COMMON.DELETE'),
-      cancelText: this.translate.instant('COMMON.CANCEL'),
-      danger: true,
-    })
-      .pipe(
-        filter((confirmed) => confirmed),
-        switchMap(() => {
-          this.loadingService.show();
-          const minValue = min ?? undefined;
-          const maxValue = max ?? undefined;
-          return this.trackService.deleteTracksByRange(minValue, maxValue).pipe(
-            finalize(() => this.loadingService.hide())
-          );
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.notificationService.success(this.translate.instant('TRACKS.DELETE_SUCCESS'));
-          this.rangeForm.reset();
-        },
-        error: () => {
-          this.notificationService.error(this.translate.instant('TRACKS.DELETE_ERROR'));
-        },
-      });
+    confirmAndRunWithNotify(
+      {
+        title: this.translate.instant('TRACKS.DELETE_TITLE'),
+        message,
+        confirmText: this.translate.instant('COMMON.DELETE'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
+        danger: true,
+      },
+      () => this.trackService.deleteTracksByRange(min ?? undefined, max ?? undefined),
+      {
+        dialog: this.dialog,
+        loadingService: this.loadingService,
+        notificationService: this.notificationService,
+        successMessage: this.translate.instant('TRACKS.DELETE_SUCCESS'),
+        errorMessage: this.translate.instant('TRACKS.DELETE_ERROR'),
+        onSuccess: () => this.rangeForm.reset(),
+      },
+    ).subscribe();
   }
 
   // Applies preset.
