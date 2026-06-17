@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/config"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/di"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/logging"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres"
@@ -29,7 +29,7 @@ func main() {
 	logger := logging.InitFromEnv()
 	defer logging.SafeSync(logger)
 
-	utils.LoadEnvVariables()
+	config.LoadEnvVariables()
 
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
