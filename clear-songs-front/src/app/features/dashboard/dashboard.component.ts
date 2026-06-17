@@ -101,14 +101,9 @@ export class DashboardComponent {
     });
   }
 
-  // Fetches resource.
-  private getResource() {
-    return this.trackSummaryResource;
-  }
+  isLoading = computed(() => this.trackSummaryResource.isLoading());
 
-  isLoading = computed(() => this.getResource()?.isLoading() ?? true);
-  
-  artists = computed<ArtistSummary[]>(() => this.getResource()?.value()?.data ?? []);
+  artists = computed<ArtistSummary[]>(() => this.trackSummaryResource.value()?.data ?? []);
 
   totalTracks = computed(() => this.artists().reduce((sum, artist) => sum + artist.count, 0));
   totalArtists = computed(() => this.artists().length);
@@ -212,7 +207,7 @@ export class DashboardComponent {
   // Loads track summary.
   loadTrackSummary(): void {
     this.trackService.invalidateLibraryCache().subscribe({
-      next: () => this.getResource().reload(),
+      next: () => this.trackSummaryResource.reload(),
       error: () => {
         this.notificationService.error(this.translate.instant('DASHBOARD.LOAD_ERROR'));
       },
