@@ -3,10 +3,10 @@ package handlers
 import (
 	"github.com/RubenPari/clear-songs/internal/application/track"
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
-	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	"github.com/gin-gonic/gin"
 	spotifyAPI "github.com/zmb3/spotify"
 )
+
 
 // TrackController is the refactored track controller
 type TrackController struct {
@@ -107,30 +107,9 @@ func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 		return
 	}
 
-	// Convert to response format
-	var response []track.TrackResponse
-	for _, t := range tracks {
-		artists := make([]string, len(t.Artists))
-		for i, artist := range t.Artists {
-			artists[i] = artist.Name
-		}
-
-		imageURL := utils.GetMediumImage(t.Album.Images)
-
-		spotifyURL := ""
-		if url, exists := t.ExternalURLs["spotify"]; exists {
-			spotifyURL = url
-		}
-
-		response = append(response, track.TrackResponse{
-			ID:         t.ID.String(),
-			Name:       t.Name,
-			Artists:    artists,
-			Album:      t.Album.Name,
-			Duration:   t.Duration,
-			ImageURL:   imageURL,
-			SpotifyURL: spotifyURL,
-		})
+	response := make([]track.TrackResponse, len(tracks))
+	for i, t := range tracks {
+		response[i] = track.NewTrackResponse(t)
 	}
 
 	tc.JSONSuccess(c, response)

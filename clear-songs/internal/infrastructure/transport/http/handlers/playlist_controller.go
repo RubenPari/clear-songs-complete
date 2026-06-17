@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"github.com/RubenPari/clear-songs/internal/application/playlist"
-	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	"github.com/gin-gonic/gin"
 	spotifyAPI "github.com/zmb3/spotify"
 )
+
 
 // PlaylistRequest validates the incoming query parameters
 type PlaylistRequest struct {
@@ -42,16 +42,9 @@ func (pc *PlaylistControllerRefactored) GetUserPlaylists(c *gin.Context) {
 		return
 	}
 
-	// Convert to response format
-	var response []playlist.PlaylistResponse
-	for _, p := range playlists {
-		imageURL := utils.GetMediumImage(p.Images)
-
-		response = append(response, playlist.PlaylistResponse{
-			ID:       p.ID.String(),
-			Name:     p.Name,
-			ImageURL: imageURL,
-		})
+	response := make([]playlist.PlaylistResponse, len(playlists))
+	for i, p := range playlists {
+		response[i] = playlist.NewPlaylistResponse(p)
 	}
 
 	pc.JSONSuccess(c, response)
