@@ -18,22 +18,12 @@ import (
  */
 // Registers HTTP routes.
 func SetUpRoutes(server *gin.Engine, container *di.Container) {
-	/**
-	 * Global Middleware
-	 *
-	 * These middleware functions are applied to all routes:
-	 * - SessionMiddlewareRefactored: Manages user sessions using DI
-	 * - CacheInvalidationMiddleware: Invalidates cache when data is modified
-	 */
 	server.Use(middleware.SessionMiddleware(
 		container.SpotifyRepo,
 		container.CacheRepo,
 	))
 	server.Use(middleware.CacheInvalidationMiddleware())
 
-	/**
-	 * 404 Not Found Handler
-	 */
 	server.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{
 			"status":  "error",
@@ -41,9 +31,6 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 		})
 	})
 
-	/**
-	 * Track Management Routes Group
-	 */
 	trackController := handlers.NewTrackController(
 		container.CacheRepo,
 		container.GetTrackSummaryUseCase,
@@ -75,9 +62,6 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 			trackController.DeleteTrackByRange)
 	}
 
-	/**
-	 * Authentication Routes Group (Spotify)
-	 */
 	authController := handlers.NewAuthController(
 		container.LoginUC,
 		container.CallbackUC,
@@ -93,9 +77,6 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 		auth.GET("/is-auth", authController.IsAuth)
 	}
 
-	/**
-	 * Playlist Management Routes Group
-	 */
 	playlistController := handlers.NewPlaylistController(
 		container.GetUserPlaylistsUC,
 		container.DeletePlaylistTracksUC,

@@ -12,32 +12,26 @@ import (
 // BaseController provides common functionality for all controllers
 type BaseController struct{}
 
-// Returns a success JSON response.
 func (bc *BaseController) JSONSuccess(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, dto.NewSuccess(data))
 }
 
-// Returns an error JSON response.
 func (bc *BaseController) JSONError(c *gin.Context, status int, code, message string) {
 	c.JSON(status, dto.NewError(code, message))
 }
 
-// Returns a validation error response.
 func (bc *BaseController) JSONValidationError(c *gin.Context, message string) {
 	c.JSON(http.StatusBadRequest, dto.ValidationErr(message))
 }
 
-// Returns an internal error response.
 func (bc *BaseController) JSONInternalError(c *gin.Context, message string) {
 	c.JSON(http.StatusInternalServerError, dto.InternalErr(message))
 }
 
-// Returns a not found response.
 func (bc *BaseController) JSONNotFound(c *gin.Context, resource string) {
 	c.JSON(http.StatusNotFound, dto.NotFoundErr(resource))
 }
 
-// Returns an unauthorized response.
 func (bc *BaseController) JSONUnauthorized(c *gin.Context) {
 	c.JSON(http.StatusUnauthorized, dto.UnauthorizedErr())
 }
