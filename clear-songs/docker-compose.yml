@@ -12,7 +12,7 @@ services:
     environment:
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
-      REDIRECT_URL: ${REDIRECT_URL}
+      REDIRECT_URI: ${REDIRECT_URI:-http://127.0.0.1:3000/auth/callback}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-}
       DB_HOST: postgres

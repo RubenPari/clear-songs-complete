@@ -11,6 +11,7 @@ import (
 	"github.com/RubenPari/clear-songs/internal/application/track"
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/internal/domain/shared/constants"
+	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/external/gemini"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/external/spotify"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/persistence/postgres"
@@ -142,13 +143,10 @@ func NewContainer() (*Container, error) {
 func GetOAuth2Config() (*oauth2.Config, error) {
 	clientID := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("CLIENT_SECRET")
-	redirectURI := os.Getenv("REDIRECT_URL")
-	if redirectURI == "" {
-		redirectURI = os.Getenv("REDIRECT_URI")
-	}
+	redirectURI := utils.GetRedirectURL()
 
 	if clientID == "" || clientSecret == "" || redirectURI == "" {
-		return nil, errors.New("missing required environment variables: CLIENT_ID, CLIENT_SECRET, REDIRECT_URL")
+		return nil, errors.New("missing required environment variables: CLIENT_ID, CLIENT_SECRET, REDIRECT_URL or REDIRECT_URI")
 	}
 
 	return &oauth2.Config{

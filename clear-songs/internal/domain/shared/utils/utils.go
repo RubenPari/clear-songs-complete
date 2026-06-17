@@ -11,6 +11,16 @@ import (
 	"go.uber.org/zap"
 )
 
+// GetRedirectURL returns the OAuth redirect URL from the environment.
+// It accepts either REDIRECT_URL or REDIRECT_URI for backward compatibility.
+func GetRedirectURL() string {
+	redirectURL := os.Getenv("REDIRECT_URL")
+	if redirectURL == "" {
+		redirectURL = os.Getenv("REDIRECT_URI")
+	}
+	return redirectURL
+}
+
 // Converts tracks to id.
 func ConvertTracksToID(tracks interface{}) ([]spotifyAPI.ID, error) {
 	var trackIDs []spotifyAPI.ID
@@ -71,11 +81,7 @@ func LoadEnvVariables() {
 
 	zap.L().Info("loaded environment variables")
 
-	// Verify critical environment variables are loaded
-	redirectURL := os.Getenv("REDIRECT_URL")
-	if redirectURL == "" {
-		redirectURL = os.Getenv("REDIRECT_URI")
-	}
+	redirectURL := GetRedirectURL()
 	if redirectURL == "" {
 		zap.L().Fatal("REDIRECT_URL or REDIRECT_URI not found in environment variables after loading .env file")
 	}
