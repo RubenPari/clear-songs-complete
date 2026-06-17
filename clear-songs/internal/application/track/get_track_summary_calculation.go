@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
-	"github.com/RubenPari/clear-songs/internal/domain/shared/utils"
+	spotifyhelpers "github.com/RubenPari/clear-songs/internal/infrastructure/external/spotify/helpers"
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
 	spotifyAPI "github.com/zmb3/spotify"
 	"go.uber.org/zap"
@@ -208,7 +208,7 @@ func passesRangeFilter(count, min, max int) bool {
 // Extract artist metadata.
 func extractArtistMetadata(artistID string, artistDetails map[string]*spotifyAPI.FullArtist) (string, []string) {
 	if artist, ok := artistDetails[artistID]; ok {
-		return utils.GetMediumImage(artist.Images), artist.Genres
+		return spotifyhelpers.GetMediumImage(artist.Images), artist.Genres
 	}
 
 	return "", nil
