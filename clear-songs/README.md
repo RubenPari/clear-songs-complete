@@ -92,7 +92,7 @@ The application allows you to quickly clean up your Spotify library by:
 5. **Run the application**
 
    ```bash
-   go run src/main.go
+   go run ./cmd/server/main.go
    ```
 
 The server will start on `http://127.0.0.1:3000`
@@ -160,7 +160,7 @@ The easiest way to run the entire backend stack (API, PostgreSQL, and Redis) is 
 #### API Service
 - Image: `golang:1.22`
 - Port: `3000`
-- Auto-runs: `go run ./src/main.go`
+- Auto-runs: `go run ./cmd/server/main.go`
 - Depends on: PostgreSQL and Redis
 
 #### PostgreSQL Service
@@ -604,13 +604,13 @@ go test ./...
 ### Building for Production
 
 ```bash
-go build -o clear-songs src/main.go
+go build -o clear-songs ./cmd/server/main.go
 ```
 
 ### API Documentation Generation
 
 ```bash
-swag init -g src/main.go
+swag init -g ./cmd/server/main.go
 ```
 
 ---
