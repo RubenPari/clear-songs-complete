@@ -29,7 +29,7 @@ func NewGetUserPlaylistsUseCase(
 
 // Execute.
 func (uc *GetUserPlaylistsUseCase) Execute(ctx context.Context) ([]spotifyAPI.SimplePlaylist, error) {
-	cacheKey := "userPlaylists"
+	cacheKey := shared.CacheKeyUserPlaylists
 
 	// Check cache first, if available and not expired
 	var cached []spotifyAPI.SimplePlaylist

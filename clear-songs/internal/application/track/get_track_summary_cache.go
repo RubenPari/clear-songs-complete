@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	domainTrack "github.com/RubenPari/clear-songs/internal/domain/track"
 	"go.uber.org/zap"
 )
@@ -12,9 +13,9 @@ import (
 // Builds track summary cache key.
 func buildTrackSummaryCacheKey(min, max int, genre string) string {
 	if genre == "" {
-		return fmt.Sprintf("track_summary_%d_%d", min, max)
+		return fmt.Sprintf(shared.CacheKeyTrackSummaryFmt, min, max)
 	}
-	return fmt.Sprintf("track_summary_%d_%d_%s", min, max, genre)
+	return fmt.Sprintf(shared.CacheKeyTrackSummaryGenreFmt, min, max, genre)
 }
 
 // Fetches cached summary.

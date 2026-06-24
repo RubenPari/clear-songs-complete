@@ -2,33 +2,46 @@ package track
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"go.uber.org/zap"
+)
+
+var (
+	artistAIGenreTTL     time.Duration
+	artistAIGenreTTLOnce sync.Once
 )
 
 const artistAIGenreKeyPrefix = "artist_ai_genre:"
 
 // Artist aigenre cache key.
 func artistAIGenreCacheKey(artistKey string) string {
-	return artistAIGenreKeyPrefix + artistKey
+	return fmt.Sprintf(shared.CacheKeyArtistAIGenreFmt, artistKey)
 }
 
-// Artist aigenre cache ttl.
+// Artist aigenre cache ttl reads the environment once and caches the result.
 func artistAIGenreCacheTTL() time.Duration {
-	const defaultSec = 7 * 24 * 3600
-	s := strings.TrimSpace(os.Getenv("ARTIST_AI_GENRE_CACHE_TTL_SEC"))
-	if s == "" {
-		return time.Duration(defaultSec) * time.Second
-	}
-	sec, err := strconv.Atoi(s)
-	if err != nil || sec < 60 {
-		return time.Duration(defaultSec) * time.Second
-	}
-	return time.Duration(sec) * time.Second
+	artistAIGenreTTLOnce.Do(func() {
+		const defaultSec = 7 * 24 * 3600
+		s := strings.TrimSpace(os.Getenv("ARTIST_AI_GENRE_CACHE_TTL_SEC"))
+		if s == "" {
+			artistAIGenreTTL = time.Duration(defaultSec) * time.Second
+			return
+		}
+		sec, err := strconv.Atoi(s)
+		if err != nil || sec < 60 {
+			artistAIGenreTTL = time.Duration(defaultSec) * time.Second
+			return
+		}
+		artistAIGenreTTL = time.Duration(sec) * time.Second
+	})
+	return artistAIGenreTTL
 }
 
 // Fetches cached artist canonical genre.

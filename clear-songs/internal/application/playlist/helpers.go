@@ -6,6 +6,7 @@ import (
 
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	spotifyAPI "github.com/zmb3/spotify"
+	"go.uber.org/zap"
 )
 
 // extractPlaylistTrackIDs extracts the track IDs from a slice of playlist tracks.
@@ -35,6 +36,10 @@ func fetchPlaylistTracks(
 		return nil, err
 	}
 
-	_ = cacheRepo.SetPlaylistTracks(ctx, playlistID, tracks, 5*time.Minute)
+	if err := cacheRepo.SetPlaylistTracks(ctx, playlistID, tracks, 5*time.Minute); err != nil {
+		zap.L().Warn("failed to cache playlist tracks", zap.String("playlist_id", playlistID.String()), zap.Error(err))
+	}
 	return tracks, nil
 }
+
+const fetchPlaylistTracksCacheTTL = 5 * time.Minute

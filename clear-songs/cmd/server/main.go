@@ -61,7 +61,7 @@ func main() {
 	router.Use(ginzap.RecoveryWithZap(logger, true))
 
 	allowedOrigins := []string{"http://127.0.0.1", "http://127.0.0.1:4200", "http://localhost:4200"}
-	if frontendURL := os.Getenv("FRONTEND_URL"); frontendURL != "" {
+	if frontendURL := config.GetFrontendURL(); frontendURL != "" {
 		allowedOrigins = append(allowedOrigins, frontendURL)
 	}
 

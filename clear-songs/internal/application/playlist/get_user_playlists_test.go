@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/RubenPari/clear-songs/test/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -23,9 +24,9 @@ func TestGetUserPlaylistsUseCase_Execute(t *testing.T) {
 		playlists := []spotifyAPI.SimplePlaylist{{Name: "Playlist 1"}}
 
 		// Match any context and the specific key
-		mockCacheRepo.On("Get", mock.Anything, "userPlaylists", mock.Anything).Return(false, nil)
+		mockCacheRepo.On("Get", mock.Anything, shared.CacheKeyUserPlaylists, mock.Anything).Return(false, nil)
 		mockSpotifyRepo.On("GetAllUserPlaylists", mock.Anything).Return(playlists, nil)
-		mockCacheRepo.On("Set", mock.Anything, "userPlaylists", playlists, mock.Anything).Return(nil)
+		mockCacheRepo.On("Set", mock.Anything, shared.CacheKeyUserPlaylists, playlists, mock.Anything).Return(nil)
 
 		// Execute
 		result, err := useCase.Execute(ctx)
