@@ -33,22 +33,23 @@ type Container struct {
 	OAuthConfig *oauth2.Config
 
 	// Auth Use Cases
-	LoginUC    *auth.LoginUseCase
-	CallbackUC *auth.CallbackUseCase
-	LogoutUC   *auth.LogoutUseCase
-	IsAuthUC   *auth.IsAuthUseCase
+	LoginUseCase    *auth.LoginUseCase
+	CallbackUseCase *auth.CallbackUseCase
+	LogoutUseCase   *auth.LogoutUseCase
+	IsAuthUseCase   *auth.IsAuthUseCase
 
 	// Track Use Cases
 	GetTrackSummaryUseCase *track.GetTrackSummaryUseCase
-	DeleteTracksByArtistUC *track.DeleteTracksByArtistUseCase
-	DeleteTracksByRangeUC  *track.DeleteTracksByRangeUseCase
-	DeleteTrackUC          *track.DeleteTrackUseCase
-	GetTracksByArtistUC    *track.GetTracksByArtistUseCase
+	DeleteTracksByArtistUseCase *track.DeleteTracksByArtistUseCase
+	DeleteTracksByRangeUseCase  *track.DeleteTracksByRangeUseCase
+	DeleteTrackUseCase          *track.DeleteTrackUseCase
+	GetTracksByArtistUseCase    *track.GetTracksByArtistUseCase
+	InvalidateLibraryCacheUseCase *track.InvalidateLibraryCacheUseCase
 
 	// Playlist Use Cases
-	GetUserPlaylistsUC         *playlist.GetUserPlaylistsUseCase
-	DeletePlaylistTracksUC     *playlist.DeletePlaylistTracksUseCase
-	DeletePlaylistAndLibraryUC *playlist.DeletePlaylistAndLibraryTracksUseCase
+	GetUserPlaylistsUseCase         *playlist.GetUserPlaylistsUseCase
+	DeletePlaylistTracksUseCase     *playlist.DeletePlaylistTracksUseCase
+	DeletePlaylistAndLibraryUseCase *playlist.DeletePlaylistAndLibraryTracksUseCase
 }
 
 // Creates container.
@@ -89,31 +90,26 @@ func NewContainer() (*Container, error) {
 	}
 
 	// Initialize auth use cases
-	loginUC := auth.NewLoginUseCase(oauthConfig)
-	callbackUC := auth.NewCallbackUseCase(oauthConfig, spotifyRepo, cacheRepo)
-	logoutUC := auth.NewLogoutUseCase(spotifyRepo, cacheRepo)
-	isAuthUC := auth.NewIsAuthUseCase(spotifyRepo)
+	loginUseCase := auth.NewLoginUseCase(oauthConfig)
+	callbackUseCase := auth.NewCallbackUseCase(oauthConfig, spotifyRepo, cacheRepo)
+	logoutUseCase := auth.NewLogoutUseCase(spotifyRepo, cacheRepo)
+	isAuthUseCase := auth.NewIsAuthUseCase(spotifyRepo)
 
 	// Initialize track use cases
 	getTrackSummaryUseCase := track.NewGetTrackSummaryUseCase(spotifyRepo, cacheRepo, aiRepo)
-	deleteTracksByArtistUC := track.NewDeleteTracksByArtistUseCase(spotifyRepo, cacheRepo)
-	getTracksByArtistUC := track.NewGetTracksByArtistUseCase(spotifyRepo, cacheRepo)
-	deleteTrackUC := track.NewDeleteTrackUseCase(spotifyRepo, cacheRepo, databaseRepo)
-	deleteTracksByRangeUC := track.NewDeleteTracksByRangeUseCase(
-		spotifyRepo,
-		cacheRepo,
-		getTrackSummaryUseCase,
-		deleteTracksByArtistUC,
-	)
+	deleteTracksByArtistUseCase := track.NewDeleteTracksByArtistUseCase(spotifyRepo, cacheRepo)
+	getTracksByArtistUseCase := track.NewGetTracksByArtistUseCase(spotifyRepo, cacheRepo)
+	deleteTrackUseCase := track.NewDeleteTrackUseCase(spotifyRepo, cacheRepo, databaseRepo)
+	deleteTracksByRangeUseCase := track.NewDeleteTracksByRangeUseCase(spotifyRepo, cacheRepo)
+	invalidateLibraryCacheUseCase := track.NewInvalidateLibraryCacheUseCase(cacheRepo)
 
 	// Initialize playlist use cases
-	getUserPlaylistsUC := playlist.NewGetUserPlaylistsUseCase(spotifyRepo, cacheRepo)
-	deletePlaylistTracksUC := playlist.NewDeletePlaylistTracksUseCase(spotifyRepo, cacheRepo)
-	deletePlaylistAndLibraryUC := playlist.NewDeletePlaylistAndLibraryTracksUseCase(
+	getUserPlaylistsUseCase := playlist.NewGetUserPlaylistsUseCase(spotifyRepo, cacheRepo)
+	deletePlaylistTracksUseCase := playlist.NewDeletePlaylistTracksUseCase(spotifyRepo, cacheRepo)
+	deletePlaylistAndLibraryUseCase := playlist.NewDeletePlaylistAndLibraryTracksUseCase(
 		spotifyRepo,
 		cacheRepo,
 		databaseRepo,
-		deletePlaylistTracksUC,
 	)
 
 	container := &Container{
@@ -122,18 +118,19 @@ func NewContainer() (*Container, error) {
 		DatabaseRepo:               databaseRepo,
 		AIRepo:                     aiRepo,
 		OAuthConfig:                oauthConfig,
-		LoginUC:                    loginUC,
-		CallbackUC:                 callbackUC,
-		LogoutUC:                   logoutUC,
-		IsAuthUC:                   isAuthUC,
+		LoginUseCase:               loginUseCase,
+		CallbackUseCase:            callbackUseCase,
+		LogoutUseCase:              logoutUseCase,
+		IsAuthUseCase:              isAuthUseCase,
 		GetTrackSummaryUseCase:     getTrackSummaryUseCase,
-		DeleteTracksByArtistUC:     deleteTracksByArtistUC,
-		DeleteTracksByRangeUC:      deleteTracksByRangeUC,
-		DeleteTrackUC:              deleteTrackUC,
-		GetTracksByArtistUC:        getTracksByArtistUC,
-		GetUserPlaylistsUC:         getUserPlaylistsUC,
-		DeletePlaylistTracksUC:     deletePlaylistTracksUC,
-		DeletePlaylistAndLibraryUC: deletePlaylistAndLibraryUC,
+		DeleteTracksByArtistUseCase: deleteTracksByArtistUseCase,
+		DeleteTracksByRangeUseCase:  deleteTracksByRangeUseCase,
+		DeleteTrackUseCase:          deleteTrackUseCase,
+		GetTracksByArtistUseCase:    getTracksByArtistUseCase,
+		InvalidateLibraryCacheUseCase: invalidateLibraryCacheUseCase,
+		GetUserPlaylistsUseCase:         getUserPlaylistsUseCase,
+		DeletePlaylistTracksUseCase:     deletePlaylistTracksUseCase,
+		DeletePlaylistAndLibraryUseCase: deletePlaylistAndLibraryUseCase,
 	}
 
 	return container, nil

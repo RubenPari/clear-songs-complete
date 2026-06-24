@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/RubenPari/clear-songs/internal/application/auth"
+	"github.com/RubenPari/clear-songs/internal/infrastructure/config"
 	"github.com/RubenPari/clear-songs/internal/infrastructure/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -63,8 +64,7 @@ func (ac *AuthController) Callback(c *gin.Context) {
 	ac.clearOAuthStateCookie(c)
 
 	ctx := c.Request.Context()
-	redirectURL, err := ac.callbackUC.Execute(ctx, code)
-	if err != nil {
+	if err := ac.callbackUC.Execute(ctx, code); err != nil {
 		var re *oauth2.RetrieveError
 		if errors.As(err, &re) {
 			logging.LoggerFromGinContext(c).Error("OAuth callback failed",
@@ -77,6 +77,8 @@ func (ac *AuthController) Callback(c *gin.Context) {
 		ac.JSONInternalError(c, "Error authenticating user")
 		return
 	}
+
+	redirectURL := config.GetFrontendURL() + "/callback"
 	c.Redirect(http.StatusFound, redirectURL)
 }
 

@@ -48,9 +48,7 @@ func (uc *DeleteTracksByArtistUseCase) Execute(ctx context.Context, artistID spo
 	}
 
 	// 4. Invalidate cache
-	if uc.cacheRepo != nil {
-		_ = uc.cacheRepo.InvalidateUserTracks(ctx)
-	}
+	_ = uc.cacheRepo.InvalidateUserTracks(ctx)
 
 	return nil
 }

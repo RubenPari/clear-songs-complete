@@ -32,12 +32,10 @@ func (uc *GetUserPlaylistsUseCase) Execute(ctx context.Context) ([]spotifyAPI.Si
 	cacheKey := "userPlaylists"
 
 	// Check cache first, if available and not expired
-	if uc.cacheRepo != nil {
-		var cached []spotifyAPI.SimplePlaylist
-		found, err := uc.cacheRepo.Get(ctx, cacheKey, &cached)
-		if err == nil && found && len(cached) > 0 {
-			return cached, nil
-		}
+	var cached []spotifyAPI.SimplePlaylist
+	found, err := uc.cacheRepo.Get(ctx, cacheKey, &cached)
+	if err == nil && found && len(cached) > 0 {
+		return cached, nil
 	}
 
 	// If not in cache or cache is empty, fetch from Spotify
@@ -46,9 +44,7 @@ func (uc *GetUserPlaylistsUseCase) Execute(ctx context.Context) ([]spotifyAPI.Si
 		return nil, err
 	}
 
-	if uc.cacheRepo != nil {
-		_ = uc.cacheRepo.Set(ctx, cacheKey, playlists, userPlaylistsCacheTTL)
-	}
+	_ = uc.cacheRepo.Set(ctx, cacheKey, playlists, userPlaylistsCacheTTL)
 
 	return playlists, nil
 }

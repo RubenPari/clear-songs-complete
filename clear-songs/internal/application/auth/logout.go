@@ -26,10 +26,7 @@ func NewLogoutUseCase(
 // Execute clears the current OAuth token from the repository and cache.
 func (uc *LogoutUseCase) Execute(ctx context.Context) error {
 	_ = uc.spotifyRepo.SetAccessToken(nil)
-
-	if uc.cacheRepo != nil {
-		_ = uc.cacheRepo.ClearToken(ctx)
-	}
+	_ = uc.cacheRepo.ClearToken(ctx)
 
 	return nil
 }

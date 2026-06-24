@@ -19,6 +19,16 @@ func GetRedirectURL() string {
 	return redirectURL
 }
 
+// GetFrontendURL returns the frontend URL from the environment.
+// It falls back to the local development URL when FRONTEND_URL is not set.
+func GetFrontendURL() string {
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		frontendURL = "http://127.0.0.1:4200"
+	}
+	return frontendURL
+}
+
 // LoadEnvVariables loads .env from the working directory (or its parent on Windows)
 // and validates that a redirect URL is configured.
 func LoadEnvVariables() {

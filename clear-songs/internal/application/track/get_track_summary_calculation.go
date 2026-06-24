@@ -122,7 +122,7 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 		needsAI = append(needsAI, shared.AIArtistLookup{Key: mapKey, Name: data.name})
 	}
 
-	if len(needsAI) > 0 && uc.aiRepo != nil {
+	if len(needsAI) > 0 {
 		zap.L().Info("resolving AI genres", zap.Int("artist_count", len(needsAI)))
 		rawMap, err := uc.aiRepo.ResolveArtistGenres(ctx, needsAI)
 		if err != nil {

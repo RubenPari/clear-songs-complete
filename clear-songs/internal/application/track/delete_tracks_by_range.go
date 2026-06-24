@@ -7,50 +7,54 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
-// DeleteTracksByRangeUseCase handles the business logic for deleting tracks by range
+// DeleteTracksByRangeUseCase handles the business logic for deleting tracks by range.
 type DeleteTracksByRangeUseCase struct {
-	spotifyRepo       shared.SpotifyRepository
-	cacheRepo         shared.CacheRepository
-	getTrackSummaryUC *GetTrackSummaryUseCase
-	deleteByArtistUC  *DeleteTracksByArtistUseCase
+	spotifyRepo shared.SpotifyRepository
+	cacheRepo   shared.CacheRepository
 }
 
-// Creates delete tracks by range use case.
+// NewDeleteTracksByRangeUseCase creates a new DeleteTracksByRangeUseCase.
 func NewDeleteTracksByRangeUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
-	getTrackSummaryUC *GetTrackSummaryUseCase,
-	deleteByArtistUC *DeleteTracksByArtistUseCase,
 ) *DeleteTracksByRangeUseCase {
 	return &DeleteTracksByRangeUseCase{
-		spotifyRepo:       spotifyRepo,
-		cacheRepo:         cacheRepo,
-		getTrackSummaryUC: getTrackSummaryUC,
-		deleteByArtistUC:  deleteByArtistUC,
+		spotifyRepo: spotifyRepo,
+		cacheRepo:   cacheRepo,
 	}
 }
 
-// Execute.
+// Execute deletes all saved tracks whose primary artist falls within the track-count range [min, max].
 func (uc *DeleteTracksByRangeUseCase) Execute(ctx context.Context, min, max int) error {
-	// 1. Get track summary filtered by range (no genre filter for deletion)
-	summary, err := uc.getTrackSummaryUC.Execute(ctx, min, max, "")
+	tracks, err := getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 	if err != nil {
 		return err
 	}
 
-	// 2. Delete tracks for each artist in the summary
-	deletionsOccurred := false
-	for _, artist := range summary {
-		if err := uc.deleteByArtistUC.Execute(ctx, spotifyAPI.ID(artist.ID)); err != nil {
+	artistMap := groupTracksByPrimaryArtist(tracks)
+
+	var trackIDsToDelete []spotifyAPI.ID
+	for _, artist := range artistMap {
+		if !passesRangeFilter(artist.count, min, max) {
+			continue
+		}
+
+		artistTrackIDs, err := uc.spotifyRepo.GetTrackIDsByArtist(ctx, spotifyAPI.ID(artist.id), tracks)
+		if err != nil {
 			return err
 		}
-		deletionsOccurred = true
+
+		trackIDsToDelete = append(trackIDsToDelete, artistTrackIDs...)
 	}
 
-	// 3. Invalidate cache if deletions occurred
-	if deletionsOccurred && uc.cacheRepo != nil {
-		_ = uc.cacheRepo.InvalidateUserTracks(ctx)
+	if len(trackIDsToDelete) == 0 {
+		return nil
 	}
 
+	if err := uc.spotifyRepo.DeleteTracksFromLibrary(ctx, trackIDsToDelete); err != nil {
+		return err
+	}
+
+	_ = uc.cacheRepo.InvalidateUserTracks(ctx)
 	return nil
 }

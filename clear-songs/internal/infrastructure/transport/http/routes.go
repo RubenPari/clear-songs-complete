@@ -32,12 +32,12 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	})
 
 	trackController := handlers.NewTrackController(
-		container.CacheRepo,
 		container.GetTrackSummaryUseCase,
-		container.DeleteTracksByArtistUC,
-		container.DeleteTracksByRangeUC,
-		container.GetTracksByArtistUC,
-		container.DeleteTrackUC,
+		container.DeleteTracksByArtistUseCase,
+		container.DeleteTracksByRangeUseCase,
+		container.GetTracksByArtistUseCase,
+		container.DeleteTrackUseCase,
+		container.InvalidateLibraryCacheUseCase,
 	)
 
 	track := server.Group("/track")
@@ -63,10 +63,10 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	}
 
 	authController := handlers.NewAuthController(
-		container.LoginUC,
-		container.CallbackUC,
-		container.LogoutUC,
-		container.IsAuthUC,
+		container.LoginUseCase,
+		container.CallbackUseCase,
+		container.LogoutUseCase,
+		container.IsAuthUseCase,
 	)
 
 	auth := server.Group("/auth")
@@ -78,9 +78,9 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	}
 
 	playlistController := handlers.NewPlaylistController(
-		container.GetUserPlaylistsUC,
-		container.DeletePlaylistTracksUC,
-		container.DeletePlaylistAndLibraryUC,
+		container.GetUserPlaylistsUseCase,
+		container.DeletePlaylistTracksUseCase,
+		container.DeletePlaylistAndLibraryUseCase,
 	)
 
 	playlist := server.Group("/playlist")

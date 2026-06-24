@@ -38,10 +38,8 @@ func (uc *DeleteTrackUseCase) Execute(ctx context.Context, trackID spotifyAPI.ID
 	}
 
 	// 2. Save backup to database
-	if uc.databaseRepo != nil {
-		if err := uc.databaseRepo.SaveFullTracksBackup([]spotifyAPI.FullTrack{*track}); err != nil {
-			zap.L().Warn("failed to backup track before deletion", zap.String("track_id", trackID.String()), zap.Error(err))
-		}
+	if err := uc.databaseRepo.SaveFullTracksBackup([]spotifyAPI.FullTrack{*track}); err != nil {
+		zap.L().Warn("failed to backup track before deletion", zap.String("track_id", trackID.String()), zap.Error(err))
 	}
 
 	// 3. Delete track from library
@@ -50,9 +48,7 @@ func (uc *DeleteTrackUseCase) Execute(ctx context.Context, trackID spotifyAPI.ID
 	}
 
 	// 4. Invalidate cache
-	if uc.cacheRepo != nil {
-		_ = uc.cacheRepo.InvalidateUserTracks(ctx)
-	}
+	_ = uc.cacheRepo.InvalidateUserTracks(ctx)
 
 	return nil
 }

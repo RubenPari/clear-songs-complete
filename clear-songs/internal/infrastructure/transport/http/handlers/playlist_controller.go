@@ -12,31 +12,31 @@ type PlaylistRequest struct {
 	ID string `form:"id" binding:"required"`
 }
 
-// PlaylistControllerRefactored is the refactored playlist controller using dependency injection
-type PlaylistControllerRefactored struct {
+// PlaylistController is the refactored playlist controller using dependency injection
+type PlaylistController struct {
 	BaseController
-	getUserPlaylistsUC         *playlist.GetUserPlaylistsUseCase
-	deletePlaylistTracksUC     *playlist.DeletePlaylistTracksUseCase
-	deletePlaylistAndLibraryUC *playlist.DeletePlaylistAndLibraryTracksUseCase
+	getUserPlaylistsUseCase         *playlist.GetUserPlaylistsUseCase
+	deletePlaylistTracksUseCase     *playlist.DeletePlaylistTracksUseCase
+	deletePlaylistAndLibraryUseCase *playlist.DeletePlaylistAndLibraryTracksUseCase
 }
 
 // Creates playlist controller.
 func NewPlaylistController(
-	getUserPlaylistsUC *playlist.GetUserPlaylistsUseCase,
-	deletePlaylistTracksUC *playlist.DeletePlaylistTracksUseCase,
-	deletePlaylistAndLibraryUC *playlist.DeletePlaylistAndLibraryTracksUseCase,
-) *PlaylistControllerRefactored {
-	return &PlaylistControllerRefactored{
-		getUserPlaylistsUC:         getUserPlaylistsUC,
-		deletePlaylistTracksUC:     deletePlaylistTracksUC,
-		deletePlaylistAndLibraryUC: deletePlaylistAndLibraryUC,
+	getUserPlaylistsUseCase *playlist.GetUserPlaylistsUseCase,
+	deletePlaylistTracksUseCase *playlist.DeletePlaylistTracksUseCase,
+	deletePlaylistAndLibraryUseCase *playlist.DeletePlaylistAndLibraryTracksUseCase,
+) *PlaylistController {
+	return &PlaylistController{
+		getUserPlaylistsUseCase:         getUserPlaylistsUseCase,
+		deletePlaylistTracksUseCase:     deletePlaylistTracksUseCase,
+		deletePlaylistAndLibraryUseCase: deletePlaylistAndLibraryUseCase,
 	}
 }
 
 // Fetches user playlists.
-func (pc *PlaylistControllerRefactored) GetUserPlaylists(c *gin.Context) {
+func (pc *PlaylistController) GetUserPlaylists(c *gin.Context) {
 	ctx := c.Request.Context()
-	playlists, err := pc.getUserPlaylistsUC.Execute(ctx)
+	playlists, err := pc.getUserPlaylistsUseCase.Execute(ctx)
 	if err != nil {
 		pc.HandleDomainError(c, err)
 		return
@@ -51,7 +51,7 @@ func (pc *PlaylistControllerRefactored) GetUserPlaylists(c *gin.Context) {
 }
 
 // Deletes all playlist tracks.
-func (pc *PlaylistControllerRefactored) DeleteAllPlaylistTracks(c *gin.Context) {
+func (pc *PlaylistController) DeleteAllPlaylistTracks(c *gin.Context) {
 	var req PlaylistRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		pc.JSONValidationError(c, "Playlist id is required")
@@ -61,7 +61,7 @@ func (pc *PlaylistControllerRefactored) DeleteAllPlaylistTracks(c *gin.Context) 
 	playlistID := spotifyAPI.ID(req.ID)
 	ctx := c.Request.Context()
 
-	if err := pc.deletePlaylistTracksUC.Execute(ctx, playlistID); err != nil {
+	if err := pc.deletePlaylistTracksUseCase.Execute(ctx, playlistID); err != nil {
 		pc.HandleDomainError(c, err)
 		return
 	}
@@ -70,7 +70,7 @@ func (pc *PlaylistControllerRefactored) DeleteAllPlaylistTracks(c *gin.Context) 
 }
 
 // Deletes all playlist and user tracks.
-func (pc *PlaylistControllerRefactored) DeleteAllPlaylistAndUserTracks(c *gin.Context) {
+func (pc *PlaylistController) DeleteAllPlaylistAndUserTracks(c *gin.Context) {
 	var req PlaylistRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		pc.JSONValidationError(c, "Playlist id is required")
@@ -80,7 +80,7 @@ func (pc *PlaylistControllerRefactored) DeleteAllPlaylistAndUserTracks(c *gin.Co
 	playlistID := spotifyAPI.ID(req.ID)
 	ctx := c.Request.Context()
 
-	if err := pc.deletePlaylistAndLibraryUC.Execute(ctx, playlistID); err != nil {
+	if err := pc.deletePlaylistAndLibraryUseCase.Execute(ctx, playlistID); err != nil {
 		pc.HandleDomainError(c, err)
 		return
 	}

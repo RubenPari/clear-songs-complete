@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/RubenPari/clear-songs/internal/application/track"
-	"github.com/RubenPari/clear-songs/internal/domain/shared"
 	"github.com/gin-gonic/gin"
 	spotifyAPI "github.com/zmb3/spotify"
 )
@@ -11,45 +10,42 @@ import (
 // TrackController is the refactored track controller
 type TrackController struct {
 	BaseController
-	cacheRepo              shared.CacheRepository
-	getTrackSummaryUseCase *track.GetTrackSummaryUseCase
-	deleteTracksByArtistUC *track.DeleteTracksByArtistUseCase
-	deleteTracksByRangeUC  *track.DeleteTracksByRangeUseCase
-	deleteTrackUC          *track.DeleteTrackUseCase
-	getTracksByArtistUC    *track.GetTracksByArtistUseCase
+	getTrackSummaryUseCase     *track.GetTrackSummaryUseCase
+	deleteTracksByArtistUseCase *track.DeleteTracksByArtistUseCase
+	deleteTracksByRangeUseCase  *track.DeleteTracksByRangeUseCase
+	deleteTrackUseCase          *track.DeleteTrackUseCase
+	getTracksByArtistUseCase    *track.GetTracksByArtistUseCase
+	invalidateLibraryCacheUseCase *track.InvalidateLibraryCacheUseCase
 }
 
 // Creates track controller.
 func NewTrackController(
-	cacheRepo shared.CacheRepository,
 	getTrackSummaryUseCase *track.GetTrackSummaryUseCase,
-	deleteTracksByArtistUC *track.DeleteTracksByArtistUseCase,
-	deleteTracksByRangeUC *track.DeleteTracksByRangeUseCase,
-	getTracksByArtistUC *track.GetTracksByArtistUseCase,
-	deleteTrackUC *track.DeleteTrackUseCase,
+	deleteTracksByArtistUseCase *track.DeleteTracksByArtistUseCase,
+	deleteTracksByRangeUseCase *track.DeleteTracksByRangeUseCase,
+	getTracksByArtistUseCase *track.GetTracksByArtistUseCase,
+	deleteTrackUseCase *track.DeleteTrackUseCase,
+	invalidateLibraryCacheUseCase *track.InvalidateLibraryCacheUseCase,
 ) *TrackController {
 	return &TrackController{
-		cacheRepo:              cacheRepo,
-		getTrackSummaryUseCase: getTrackSummaryUseCase,
-		deleteTracksByArtistUC: deleteTracksByArtistUC,
-		deleteTracksByRangeUC:  deleteTracksByRangeUC,
-		deleteTrackUC:          deleteTrackUC,
-		getTracksByArtistUC:    getTracksByArtistUC,
+		getTrackSummaryUseCase:      getTrackSummaryUseCase,
+		deleteTracksByArtistUseCase: deleteTracksByArtistUseCase,
+		deleteTracksByRangeUseCase:  deleteTracksByRangeUseCase,
+		deleteTrackUseCase:          deleteTrackUseCase,
+		getTracksByArtistUseCase:    getTracksByArtistUseCase,
+		invalidateLibraryCacheUseCase: invalidateLibraryCacheUseCase,
 	}
 }
 
 // Invalidates library cache.
 func (tc *TrackController) InvalidateLibraryCache(c *gin.Context) {
-	if tc.cacheRepo == nil {
-		tc.JSONSuccess(c, gin.H{"message": "No cache configured"})
-		return
-	}
 	ctx := c.Request.Context()
-	if err := tc.cacheRepo.InvalidateUserTracks(ctx); err != nil {
+	msg, err := tc.invalidateLibraryCacheUseCase.Execute(ctx)
+	if err != nil {
 		tc.JSONInternalError(c, "Failed to invalidate library cache")
 		return
 	}
-	tc.JSONSuccess(c, gin.H{"message": "Library cache invalidated"})
+	tc.JSONSuccess(c, gin.H{"message": msg})
 }
 
 // Fetches track summary.
@@ -73,16 +69,9 @@ func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 		return
 	}
 
-	var response []track.ArtistSummary
-	for _, artist := range result {
-		response = append(response, track.ArtistSummary{
-			Id:       artist.ID,
-			Name:     artist.Name,
-			Count:    artist.Count,
-			ImageURL: artist.ImageURL,
-			Genres:   artist.Genres,
-			Genre:    artist.Genre,
-		})
+	response := make([]track.ArtistSummaryResponse, len(result))
+	for i, artist := range result {
+		response[i] = track.NewArtistSummaryResponse(artist)
 	}
 
 	tc.JSONSuccess(c, response)
@@ -101,7 +90,7 @@ func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 
 	// Execute use case
 	ctx := c.Request.Context()
-	tracks, err := tc.getTracksByArtistUC.Execute(ctx, artistID)
+	tracks, err := tc.getTracksByArtistUseCase.Execute(ctx, artistID)
 	if err != nil {
 		tc.HandleDomainError(c, err)
 		return
@@ -128,7 +117,7 @@ func (tc *TrackController) DeleteTrackByArtist(c *gin.Context) {
 
 	// Execute use case
 	ctx := c.Request.Context()
-	if err := tc.deleteTracksByArtistUC.Execute(ctx, artistID); err != nil {
+	if err := tc.deleteTracksByArtistUseCase.Execute(ctx, artistID); err != nil {
 		tc.HandleDomainError(c, err)
 		return
 	}
@@ -149,7 +138,7 @@ func (tc *TrackController) DeleteTrack(c *gin.Context) {
 
 	// Execute use case
 	ctx := c.Request.Context()
-	if err := tc.deleteTrackUC.Execute(ctx, trackID); err != nil {
+	if err := tc.deleteTrackUseCase.Execute(ctx, trackID); err != nil {
 		tc.HandleDomainError(c, err)
 		return
 	}
@@ -179,7 +168,7 @@ func (tc *TrackController) DeleteTrackByRange(c *gin.Context) {
 
 	// Execute use case
 	ctx := c.Request.Context()
-	if err := tc.deleteTracksByRangeUC.Execute(ctx, min, max); err != nil {
+	if err := tc.deleteTracksByRangeUseCase.Execute(ctx, min, max); err != nil {
 		tc.HandleDomainError(c, err)
 		return
 	}
