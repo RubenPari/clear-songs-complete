@@ -19,10 +19,6 @@ func buildTrackSummaryCacheKey(min, max int, genre string) string {
 
 // Fetches cached summary.
 func (uc *GetTrackSummaryUseCase) getCachedSummary(ctx context.Context, cacheKey string) ([]domainTrack.ArtistSummary, bool) {
-	if uc.cacheRepo == nil {
-		return nil, false
-	}
-
 	var cached []domainTrack.ArtistSummary
 	found, err := uc.cacheRepo.Get(ctx, cacheKey, &cached)
 	if err != nil {
@@ -38,10 +34,6 @@ func (uc *GetTrackSummaryUseCase) getCachedSummary(ctx context.Context, cacheKey
 
 // Cache summary.
 func (uc *GetTrackSummaryUseCase) cacheSummary(ctx context.Context, cacheKey string, summary []domainTrack.ArtistSummary) {
-	if uc.cacheRepo == nil {
-		return
-	}
-
 	if err := uc.cacheRepo.Set(ctx, cacheKey, summary, 5*time.Minute); err != nil {
 		zap.L().Warn("failed to write summary cache", zap.String("cache_key", cacheKey), zap.Error(err))
 	}

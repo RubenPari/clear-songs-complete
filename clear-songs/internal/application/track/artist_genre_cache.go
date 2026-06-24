@@ -33,9 +33,6 @@ func artistAIGenreCacheTTL() time.Duration {
 
 // Fetches cached artist canonical genre.
 func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Context, artistKey string) (string, bool) {
-	if uc.cacheRepo == nil {
-		return "", false
-	}
 	var s string
 	found, err := uc.cacheRepo.Get(ctx, artistAIGenreCacheKey(artistKey), &s)
 	if err != nil {
@@ -50,7 +47,7 @@ func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Cont
 
 // Sets cached artist canonical genre.
 func (uc *GetTrackSummaryUseCase) setCachedArtistCanonicalGenre(ctx context.Context, artistKey, canonical string) {
-	if uc.cacheRepo == nil || strings.TrimSpace(canonical) == "" {
+	if strings.TrimSpace(canonical) == "" {
 		return
 	}
 	if err := uc.cacheRepo.Set(ctx, artistAIGenreCacheKey(artistKey), canonical, artistAIGenreCacheTTL()); err != nil {
