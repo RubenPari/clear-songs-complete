@@ -18,6 +18,14 @@ import { ButtonDirective } from '../../shared/ui/button.directive';
 import { CardDirective } from '../../shared/ui/card.directive';
 import { InputDirective } from '../../shared/ui/input.directive';
 import { BadgeDirective } from '../../shared/ui/badge.directive';
+import {
+  ArtistSortColumn,
+  filterAndSortArtists,
+  normalizeRange,
+  paginate,
+  SortDirection,
+  visiblePageNumbers,
+} from './dashboard-view-model';
 
 @Component({
   selector: 'app-dashboard',
@@ -57,8 +65,9 @@ export class DashboardComponent {
   
   currentPage = signal<number>(1);
   itemsPerPage = signal<number>(10);
-  sortColumn = signal<string>('name');
-  sortDirection = signal<'asc' | 'desc'>('asc');
+  sortColumn = signal<ArtistSortColumn>('name');
+  sortDirection = signal<SortDirection>('asc');
+  failedArtistImageIds = signal<Set<string>>(new Set());
 
 
   /** Single resource; URL factory reads signals so requests refetch when filters change. */
@@ -141,33 +150,11 @@ export class DashboardComponent {
   ];
 
   filteredArtists = computed(() => {
-    let filtered = this.artists();
-    const filterValue = this.searchFilter().trim().toLowerCase();
-    
-    if (filterValue) {
-      filtered = filtered.filter(artist => 
-        artist.name.toLowerCase().includes(filterValue)
-      );
-    }
-    
-    const col = this.sortColumn();
-    const dir = this.sortDirection();
-    return [...filtered].sort((a, b) => {
-      let comparison = 0;
-      if (col === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (col === 'count') {
-        comparison = a.count - b.count;
-      }
-      return dir === 'asc' ? comparison : -comparison;
-    });
+    return filterAndSortArtists(this.artists(), this.searchFilter(), this.sortColumn(), this.sortDirection());
   });
 
   paginatedArtists = computed(() => {
-    const page = this.currentPage();
-    const items = this.itemsPerPage();
-    const start = (page - 1) * items;
-    return this.filteredArtists().slice(start, start + items);
+    return paginate(this.filteredArtists(), this.currentPage(), this.itemsPerPage());
   });
 
   totalPages = computed(() => {
@@ -175,33 +162,7 @@ export class DashboardComponent {
   });
 
   visiblePages = computed<(number | string)[]>(() => {
-    const total = this.totalPages();
-    const current = this.currentPage();
-
-    if (total <= 4) {
-      return Array.from({ length: total }, (_, i) => i + 1);
-    }
-
-    if (current <= 3) {
-      return [1, 2, 3, '...', total];
-    }
-
-    const start = Math.min(current, Math.max(1, total - 2));
-    const pages: (number | string)[] = [start];
-
-    if (start + 1 <= total) {
-      pages.push(start + 1);
-    }
-
-    if (start + 2 <= total) {
-      pages.push(start + 2);
-    }
-
-    if (pages[pages.length - 1] !== total) {
-      pages.push('...', total);
-    }
-
-    return pages;
+    return visiblePageNumbers(this.totalPages(), this.currentPage());
   });
 
   // Loads track summary.
@@ -237,22 +198,8 @@ export class DashboardComponent {
 
   // Applies range filter.
   applyRangeFilter(): void {
-    const step = 1;
     const cap = this.maxTrackCount();
-    let minV = this.rangeMinDraft();
-    let maxV = this.rangeMaxDraft();
-
-    minV = Math.max(0, Math.min(minV, cap));
-    maxV = Math.max(0, Math.min(maxV, cap));
-
-    if (minV > maxV) {
-      const t = minV;
-      minV = maxV;
-      maxV = t;
-    }
-
-    minV = Math.max(0, Math.min(minV, maxV - step));
-    maxV = Math.min(cap, Math.max(maxV, minV + step));
+    const [minV, maxV] = normalizeRange(this.rangeMinDraft(), this.rangeMaxDraft(), cap);
 
     this.rangeMinDraft.set(minV);
     this.rangeMaxDraft.set(maxV);
@@ -272,7 +219,7 @@ export class DashboardComponent {
   }
 
   // Sorts table.
-  sortTable(column: string): void {
+  sortTable(column: ArtistSortColumn): void {
     if (this.sortColumn() === column) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
@@ -287,6 +234,14 @@ export class DashboardComponent {
       return;
     }
     this.currentPage.set(page);
+  }
+
+  hasArtistImage(artist: ArtistSummary): boolean {
+    return Boolean(artist.image_url) && !this.failedArtistImageIds().has(artist.id);
+  }
+
+  onArtistImageError(artistId: string): void {
+    this.failedArtistImageIds.update((ids) => new Set(ids).add(artistId));
   }
 
   // Opens artist tracks.

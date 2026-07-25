@@ -200,8 +200,8 @@
                     <tr class="cursor-pointer border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/40" (click)="openArtistTracks(artist)">
                       <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
-                          @if (artist.image_url) {
-                            <img [src]="artist.image_url" [alt]="artist.name" class="size-9 rounded-full object-cover" (error)="artist.image_url = undefined" />
+                          @if (hasArtistImage(artist)) {
+                            <img [src]="artist.image_url" [alt]="artist.name" class="size-9 rounded-full object-cover" (error)="onArtistImageError(artist.id)" />
                           } @else {
                             <span class="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
                               <ng-icon name="lucideUser" size="16" />
@@ -242,8 +242,8 @@
                   (click)="openArtistTracks(artist)"
                   (keyup.enter)="openArtistTracks(artist)"
                 >
-                  @if (artist.image_url) {
-                    <img [src]="artist.image_url" [alt]="artist.name" class="size-11 rounded-full object-cover" (error)="artist.image_url = undefined" />
+                  @if (hasArtistImage(artist)) {
+                    <img [src]="artist.image_url" [alt]="artist.name" class="size-11 rounded-full object-cover" (error)="onArtistImageError(artist.id)" />
                   } @else {
                     <span class="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
                       <ng-icon name="lucideUser" size="18" />
