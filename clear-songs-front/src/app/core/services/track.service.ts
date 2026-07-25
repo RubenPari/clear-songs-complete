@@ -1,3 +1,7 @@
+/**
+ * Track service for managing saved tracks via the backend API.
+ * Provides reactive resource fetching, deletion operations, and cache invalidation.
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,6 +10,10 @@ import { ArtistSummary, Track } from '../models/artist.model';
 import { ApiResponse } from '../models/api-response.model';
 import { buildRangeParams } from '../utils/http-params.helper';
 
+/**
+ * Service for managing saved tracks.
+ * Provides track summary fetching, deletion by artist/range, and cache management.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -14,8 +22,8 @@ export class TrackService {
   private http = inject(HttpClient);
 
   /**
-   * Track summary as a reactive httpResource. The request URL is recomputed whenever
-   * the callbacks read new signal values (must be invoked inside the inner function).
+   * Creates a reactive HTTP resource for fetching the track summary.
+   * The resource automatically refetches when min, max, or genre signals change.
    */
   createTrackSummaryResource(deps: {
     min: () => number | undefined;
@@ -28,24 +36,41 @@ export class TrackService {
     });
   }
 
-  /** Clears Redis user-tracks + track-summary caches; call before reloading the dashboard summary. */
+  /** Clears the cached user tracks and track summary from Redis. */
   invalidateLibraryCache(): Observable<ApiResponse<unknown>> {
     return this.http.post<ApiResponse<unknown>>(`${this.apiUrl}/library-cache/invalidate`, {});
   }
 
+  /**
+   * Deletes all saved tracks by the specified artist.
+   * @param artistId - The Spotify ID of the artist
+   */
   deleteTracksByArtist(artistId: string): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/by-artist/${artistId}`);
   }
 
+  /**
+   * Deletes all saved tracks whose primary artist has a track count within the specified range.
+   * @param min - Minimum track count (inclusive)
+   * @param max - Maximum track count (inclusive)
+   */
   deleteTracksByRange(min?: number, max?: number): Observable<ApiResponse> {
     const params = buildRangeParams(min, max);
     return this.http.delete<ApiResponse>(`${this.apiUrl}/by-range`, { params });
   }
 
+  /**
+   * Retrieves all saved tracks by the specified artist.
+   * @param artistId - The Spotify ID of the artist
+   */
   getTracksByArtist(artistId: string): Observable<ApiResponse<Track[]>> {
     return this.http.get<ApiResponse<Track[]>>(`${this.apiUrl}/by-artist/${artistId}`);
   }
 
+  /**
+   * Deletes a single track from the user's library.
+   * @param trackId - The Spotify ID of the track
+   */
   deleteTrack(trackId: string): Observable<ApiResponse> {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/${trackId}`);
   }

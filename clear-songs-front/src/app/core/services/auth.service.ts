@@ -1,3 +1,7 @@
+/**
+ * Authentication service for managing Spotify OAuth flow.
+ * Handles login, callback, logout, and session status tracking.
+ */
 import { Injectable, inject, signal, effect, Injector } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
@@ -6,6 +10,10 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ApiResponse, User } from '../models/api-response.model';
 
+/**
+ * Service for managing Spotify OAuth authentication.
+ * Tracks session status and provides login/logout operations.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -26,6 +34,8 @@ export class AuthService {
   private sessionResource = httpResource<ApiResponse<{ user?: User }>>(() => `${this.apiUrl}/auth/is-auth`);
 
   constructor() {
+    // Sync session resource status with authentication state.
+    // Updates localStorage and user signals based on session resolution.
     effect(() => {
       const session = this.sessionResource.value();
       const status = this.sessionResource.status();
@@ -51,12 +61,15 @@ export class AuthService {
     });
   }
 
-  // Starts.
+  /** Initiates the OAuth flow by redirecting to the Spotify authorization URL. */
   login(): void {
     window.location.href = `${this.apiUrl}/auth/login`;
   }
 
-  // Handle callback.
+  /**
+   * Handles the OAuth callback by exchanging the authorization code for a token.
+   * @param code - The authorization code from Spotify
+   */
   handleCallback(code: string): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.apiUrl}/auth/callback?code=${code}`).pipe(
       tap((response) => {
@@ -69,7 +82,7 @@ export class AuthService {
     );
   }
 
-  // Logs out.
+  /** Logs out the user by clearing the token and redirecting to the login page. */
   logout(): Observable<ApiResponse> {
     return this.http.get<ApiResponse>(`${this.apiUrl}/auth/logout`).pipe(
       tap(() => {
@@ -82,7 +95,10 @@ export class AuthService {
     );
   }
 
-  // Checks auth status.
+  /**
+   * Returns an observable that emits the current authentication status once resolved.
+   * Useful for route guards that need to wait for session initialization.
+   */
   checkAuthStatus(): Observable<boolean> {
     return toObservable(this.sessionStatus, { injector: this.injector }).pipe(
       filter((status) => status === 'resolved' || status === 'error'),
