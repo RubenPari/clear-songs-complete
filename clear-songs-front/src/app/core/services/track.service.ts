@@ -1,11 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ArtistSummary, Track } from '../models/artist.model';
 import { ApiResponse } from '../models/api-response.model';
 import { buildRangeParams } from '../utils/http-params.helper';
-import { TrackStore } from '../stores/track.store';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +12,6 @@ import { TrackStore } from '../stores/track.store';
 export class TrackService {
   private apiUrl = `${environment.apiUrl}/track`;
   private http = inject(HttpClient);
-  private trackStore = inject(TrackStore);
 
   /**
    * Track summary as a reactive httpResource. The request URL is recomputed whenever
@@ -36,11 +34,7 @@ export class TrackService {
   }
 
   deleteTracksByArtist(artistId: string): Observable<ApiResponse> {
-    return this.http.delete<ApiResponse>(`${this.apiUrl}/by-artist/${artistId}`).pipe(
-      tap(() => {
-        this.trackStore.removeArtist(artistId);
-      })
-    );
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/by-artist/${artistId}`);
   }
 
   deleteTracksByRange(min?: number, max?: number): Observable<ApiResponse> {

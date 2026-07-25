@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TrackService } from './track.service';
-import { TrackStore } from '../stores/track.store';
 import { environment } from '../../../environments/environment';
 import { ArtistSummary } from '../models/artist.model';
 import { ApiResponse } from '../models/api-response.model';
@@ -13,17 +12,13 @@ import { TranslateModule } from '@ngx-translate/core';
 describe('TrackService', () => {
   let service: TrackService;
   let httpMock: HttpTestingController;
-  let trackStore: jasmine.SpyObj<TrackStore>;
 
   beforeEach(async () => {
-    const trackStoreSpy = jasmine.createSpyObj('TrackStore', ['setArtists', 'removeArtist']);
-
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         TrackService,
-        { provide: TrackStore, useValue: trackStoreSpy },
         provideHttpClient(),
         provideHttpClientTesting()
       ]
@@ -31,7 +26,6 @@ describe('TrackService', () => {
 
     service = TestBed.inject(TrackService);
     httpMock = TestBed.inject(HttpTestingController);
-    trackStore = TestBed.inject(TrackStore) as jasmine.SpyObj<TrackStore>;
   });
 
   afterEach(() => {
@@ -83,7 +77,6 @@ describe('TrackService', () => {
 
     service.deleteTracksByArtist(artistId).subscribe(response => {
       expect(response.success).toBeTrue();
-      expect(trackStore.removeArtist).toHaveBeenCalledWith(artistId);
     });
 
     const req = httpMock.expectOne(`${environment.apiUrl}/track/by-artist/${artistId}`);
