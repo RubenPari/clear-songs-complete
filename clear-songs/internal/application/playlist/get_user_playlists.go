@@ -44,6 +44,7 @@ func (uc *GetUserPlaylistsUseCase) Execute(ctx context.Context) ([]spotifyAPI.Si
 		return nil, err
 	}
 
+	// Store the fetched playlists in cache for future requests
 	_ = uc.cacheRepo.Set(ctx, cacheKey, playlists, userPlaylistsCacheTTL)
 
 	return playlists, nil

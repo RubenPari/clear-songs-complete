@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const fetchPlaylistTracksCacheTTL = 5 * time.Minute
+
 // extractPlaylistTrackIDs extracts the track IDs from a slice of playlist tracks.
 func extractPlaylistTrackIDs(tracks []spotifyAPI.PlaylistTrack) []spotifyAPI.ID {
 	trackIDs := make([]spotifyAPI.ID, 0, len(tracks))
@@ -41,5 +43,3 @@ func fetchPlaylistTracks(
 	}
 	return tracks, nil
 }
-
-const fetchPlaylistTracksCacheTTL = 5 * time.Minute

@@ -13,6 +13,7 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
+// TestExtractPlaylistTrackIDs verifies that track IDs are properly extracted from Spotify playlist tracks.
 func TestExtractPlaylistTrackIDs(t *testing.T) {
 	t.Run("extracts IDs from tracks", func(t *testing.T) {
 		tracks := []spotifyAPI.PlaylistTrack{
@@ -33,6 +34,7 @@ func TestExtractPlaylistTrackIDs(t *testing.T) {
 	})
 }
 
+// TestFetchPlaylistTracks tests track retrieval logic including cache hits, cache misses, and API error handling.
 func TestFetchPlaylistTracks(t *testing.T) {
 	ctx := context.Background()
 	playlistID := spotifyAPI.ID("playlist1")

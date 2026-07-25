@@ -26,6 +26,7 @@ func NewDeletePlaylistTracksUseCase(
 
 // Execute.
 func (uc *DeletePlaylistTracksUseCase) Execute(ctx context.Context, playlistID spotifyAPI.ID) error {
+	// Fetch tracks from the playlist, either from cache or Spotify API
 	tracks, err := fetchPlaylistTracks(ctx, uc.spotifyRepo, uc.cacheRepo, playlistID)
 	if err != nil {
 		return err
@@ -35,11 +36,14 @@ func (uc *DeletePlaylistTracksUseCase) Execute(ctx context.Context, playlistID s
 		return nil
 	}
 
+	// Extract track IDs and delete them from the playlist
 	trackIDs := extractPlaylistTrackIDs(tracks)
 	if err := uc.spotifyRepo.DeletePlaylistTracks(ctx, playlistID, trackIDs); err != nil {
 		return err
 	}
 
+	// Invalidate cache for the playlist and user tracks
 	_ = uc.cacheRepo.InvalidatePlaylistTracks(ctx, playlistID)
+
 	return nil
 }

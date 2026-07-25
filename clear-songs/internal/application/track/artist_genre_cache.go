@@ -18,8 +18,6 @@ var (
 	artistAIGenreTTLOnce sync.Once
 )
 
-const artistAIGenreKeyPrefix = "artist_ai_genre:"
-
 // Artist aigenre cache key.
 func artistAIGenreCacheKey(artistKey string) string {
 	return fmt.Sprintf(shared.CacheKeyArtistAIGenreFmt, artistKey)

@@ -26,13 +26,16 @@ func NewDeleteTracksByRangeUseCase(
 
 // Execute deletes all saved tracks whose primary artist falls within the track-count range [min, max].
 func (uc *DeleteTracksByRangeUseCase) Execute(ctx context.Context, min, max int) error {
+	// Fetch all saved tracks from the user's library, either from cache or Spotify API
 	tracks, err := getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 	if err != nil {
 		return err
 	}
 
+	// Group tracks by their primary artist and filter based on the specified range
 	artistMap := groupTracksByPrimaryArtist(tracks)
 
+	// Collect track IDs to delete based on the range filter
 	var trackIDsToDelete []spotifyAPI.ID
 	for _, artist := range artistMap {
 		if !passesRangeFilter(artist.count, min, max) {
@@ -51,10 +54,13 @@ func (uc *DeleteTracksByRangeUseCase) Execute(ctx context.Context, min, max int)
 		return nil
 	}
 
+	// Delete the filtered tracks from the user's library
 	if err := uc.spotifyRepo.DeleteTracksFromLibrary(ctx, trackIDsToDelete); err != nil {
 		return err
 	}
 
+	// Invalidate cache for the user's saved tracks
 	_ = uc.cacheRepo.InvalidateUserTracks(ctx)
+
 	return nil
 }
