@@ -1,3 +1,4 @@
+// Package playlist defines the domain entity for playlists.
 package playlist
 
 import "github.com/RubenPari/clear-songs/internal/domain/track"

@@ -1,3 +1,6 @@
+// Package track defines domain entities for tracks, artists, albums, and artist
+// summaries. It also contains genre resolution logic that maps Spotify genre
+// strings to canonical labels.
 package track
 
 // Track represents a track entity in the domain

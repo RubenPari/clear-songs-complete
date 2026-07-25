@@ -1,3 +1,6 @@
+// Package shared defines domain-level interfaces, error sentinels, and cache key
+// constants used across the application. It establishes the contracts that
+// infrastructure implementations must satisfy.
 package shared
 
 import "errors"

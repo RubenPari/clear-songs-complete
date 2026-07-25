@@ -1,3 +1,7 @@
+// Package track defines the core domain entities and logic for music
+// tracks, artists, and genre resolution. It contains the business rules
+// for grouping tracks by artist, resolving genres from Spotify metadata
+// or AI fallback, and building artist-level summaries.
 package track
 
 import "strings"
@@ -121,7 +125,10 @@ var genreMapping = []struct {
 	},
 }
 
-// Resolves genre.
+// ResolveGenre maps the first Spotify genre from spotifyGenres to a
+// canonical genre label using the keyword-based genreMapping table.
+// It returns the canonical name on match or an empty string when no
+// genre is provided or no keyword matches.
 func ResolveGenre(spotifyGenres []string) string {
 	if len(spotifyGenres) == 0 {
 		return ""
@@ -140,7 +147,9 @@ func ResolveGenre(spotifyGenres []string) string {
 	return ""
 }
 
-// Normalizes aigenre label.
+// NormalizeAIGenreLabel lowercases, trims, and normalises an AI-generated
+// genre string so that it can be matched against the genreMapping table.
+// It replaces "hip-hop" with "hip hop" and normalises dashes.
 func NormalizeAIGenreLabel(s string) string {
 	s = strings.ToLower(strings.TrimSpace(s))
 	s = strings.ReplaceAll(s, "hip-hop", "hip hop")
@@ -148,7 +157,9 @@ func NormalizeAIGenreLabel(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// Resolves single genre.
+// ResolveSingleGenre maps a single Spotify genre string to its canonical
+// label. Unlike ResolveGenre it operates on a plain string rather than a
+// slice. Returns empty string when the input is empty or no keyword matches.
 func ResolveSingleGenre(spotifyGenre string) string {
 	g := strings.ToLower(strings.TrimSpace(spotifyGenre))
 	if g == "" {
@@ -164,7 +175,10 @@ func ResolveSingleGenre(spotifyGenre string) string {
 	return ""
 }
 
-// Matches genre filter.
+// MatchesGenreFilter reports whether an artist should be included when
+// the user filters by requestedCanonical. An empty filter matches every
+// artist. Otherwise it checks each raw Spotify genre via ResolveSingleGenre
+// and falls back to comparing the pre-resolved aggregate genre.
 func MatchesGenreFilter(spotifyGenres []string, resolvedAggregate, requestedCanonical string) bool {
 	if requestedCanonical == "" {
 		return true

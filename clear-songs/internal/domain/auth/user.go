@@ -1,3 +1,5 @@
+// Package auth defines the domain entity for authenticated users and provides
+// conversion from Spotify API user profiles.
 package auth
 
 import spotifyAPI "github.com/zmb3/spotify"
