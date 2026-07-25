@@ -1,3 +1,5 @@
+// Package helpers provides utility functions for working with Spotify API data,
+// such as selecting appropriately sized images from Spotify's image sets.
 package helpers
 
 import spotifyAPI "github.com/zmb3/spotify"

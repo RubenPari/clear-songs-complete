@@ -1,30 +1,6 @@
-/**
- * Database Package
- *
- * This package handles database connection and initialization using GORM
- * (Go Object-Relational Mapping) with PostgreSQL as the database backend.
- *
- * The package provides:
- * - Database connection management
- * - Automatic schema migration
- * - Global database instance for use throughout the application
- *
- * Database Schema:
- * The package uses GORM's AutoMigrate feature to automatically create and
- * update database tables based on model definitions. Currently manages:
- * - TrackDB model: Stores track metadata and user library information
- *
- * Connection Configuration:
- * Database credentials are loaded from environment variables:
- * - DB_HOST: Database host address
- * - DB_PORT: Database port number
- * - DB_USER: Database username
- * - DB_PASSWORD: Database password
- * - DB_NAME: Database name
- *
- * @package postgres
- * @author Clear Songs Development Team
- */
+// Package postgres handles database connection and initialization using GORM
+// with PostgreSQL as the backend. It provides connection management, automatic
+// schema migration, and a global database instance for backup operations.
 package postgres
 
 import (
@@ -38,19 +14,12 @@ import (
 	"gorm.io/gorm"
 )
 
-/**
- * Global Database Instance
- *
- * This variable holds the GORM database connection instance.
- * It is initialized by the Init() function and can be accessed
- * throughout the application for database operations.
- *
- * The variable is set to nil initially and will be assigned
- * a valid database connection after successful initialization.
- */
+// Db is the global GORM database instance, initialized by Init().
 var Db *gorm.DB = nil
 
-// Initializes.
+// Init initializes the database connection from environment variables (DB_HOST,
+// DB_PORT, DB_USER, DB_PASSWORD, DB_NAME). Returns nil if configuration is missing
+// or connection fails, allowing the application to continue without database backup.
 func Init() error {
 	// postgres credentials
 	host := os.Getenv("DB_HOST")

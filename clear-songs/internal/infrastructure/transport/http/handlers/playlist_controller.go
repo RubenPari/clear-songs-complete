@@ -12,7 +12,7 @@ type PlaylistRequest struct {
 	ID string `form:"id" binding:"required"`
 }
 
-// PlaylistController is the refactored playlist controller using dependency injection
+// PlaylistController handles playlist-related HTTP endpoints.
 type PlaylistController struct {
 	BaseController
 	getUserPlaylistsUseCase         *playlist.GetUserPlaylistsUseCase
@@ -20,7 +20,7 @@ type PlaylistController struct {
 	deletePlaylistAndLibraryUseCase *playlist.DeletePlaylistAndLibraryTracksUseCase
 }
 
-// Creates playlist controller.
+// NewPlaylistController creates a playlist controller with the given use cases.
 func NewPlaylistController(
 	getUserPlaylistsUseCase *playlist.GetUserPlaylistsUseCase,
 	deletePlaylistTracksUseCase *playlist.DeletePlaylistTracksUseCase,
@@ -33,7 +33,7 @@ func NewPlaylistController(
 	}
 }
 
-// Fetches user playlists.
+// GetUserPlaylists retrieves all playlists owned by the authenticated user.
 func (pc *PlaylistController) GetUserPlaylists(c *gin.Context) {
 	ctx := c.Request.Context()
 	playlists, err := pc.getUserPlaylistsUseCase.Execute(ctx)
@@ -50,7 +50,8 @@ func (pc *PlaylistController) GetUserPlaylists(c *gin.Context) {
 	pc.JSONSuccess(c, response)
 }
 
-// Deletes all playlist tracks.
+// DeleteAllPlaylistTracks removes all tracks from the specified playlist.
+// Requires the playlist ID as a query parameter.
 func (pc *PlaylistController) DeleteAllPlaylistTracks(c *gin.Context) {
 	var req PlaylistRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -69,7 +70,8 @@ func (pc *PlaylistController) DeleteAllPlaylistTracks(c *gin.Context) {
 	pc.JSONSuccess(c, gin.H{"message": "Tracks deleted successfully"})
 }
 
-// Deletes all playlist and user tracks.
+// DeleteAllPlaylistAndUserTracks removes all tracks from the specified playlist
+// and also removes them from the user's saved library.
 func (pc *PlaylistController) DeleteAllPlaylistAndUserTracks(c *gin.Context) {
 	var req PlaylistRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

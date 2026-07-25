@@ -1,3 +1,6 @@
+// Package logging provides structured logging utilities built on top of zap.
+// It centralises logger initialisation from environment variables and offers
+// helpers to enrich loggers with request-scoped fields from Gin contexts.
 package logging
 
 import (
@@ -9,8 +12,14 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// RequestIDKey is the Gin context key used to store and retrieve the
+// unique request identifier propagated by the request-id middleware.
 const RequestIDKey = "request_id"
 
+// InitFromEnv creates and returns a zap.Logger configured from environment
+// variables. It reads LOG_LEVEL (default info), LOG_FORMAT ("console" or
+// "json", default json), and LOG_STACKTRACE_LEVEL (default error). The
+// returned logger is also set as the global zap logger via ReplaceGlobals.
 func InitFromEnv() *zap.Logger {
 	level := parseLevel(strings.TrimSpace(os.Getenv("LOG_LEVEL")), zap.InfoLevel)
 	stacktraceLevel := parseLevel(strings.TrimSpace(os.Getenv("LOG_STACKTRACE_LEVEL")), zap.ErrorLevel)

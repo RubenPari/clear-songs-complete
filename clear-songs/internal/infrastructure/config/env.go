@@ -1,3 +1,6 @@
+// Package config provides environment variable loading and configuration helpers.
+// It reads .env files and exposes functions for retrieving OAuth redirect URLs
+// and frontend URLs.
 package config
 
 import (

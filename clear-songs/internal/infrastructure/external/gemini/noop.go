@@ -8,18 +8,18 @@ import (
 	"go.uber.org/zap"
 )
 
-// NoOpAIRepository is a no-op implementation of AIRepository
-// used when Gemini API key is not configured
+// NoOpAIRepository is a no-op implementation of AIRepository used when Gemini
+// API key is not configured. All operations return empty results.
 type NoOpAIRepository struct{}
 
 var noOpGenreWarn sync.Once
 
-// Creates no op airepository.
+// NewNoOpAIRepository creates a no-op AI repository.
 func NewNoOpAIRepository() *NoOpAIRepository {
 	return &NoOpAIRepository{}
 }
 
-// Resolves artist genres.
+// ResolveArtistGenres logs a warning once and returns empty results for all lookups.
 func (n *NoOpAIRepository) ResolveArtistGenres(ctx context.Context, lookups []shared.AIArtistLookup) (map[string]string, error) {
 	if len(lookups) > 0 {
 		noOpGenreWarn.Do(func() {

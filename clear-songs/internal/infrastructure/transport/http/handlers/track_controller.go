@@ -7,7 +7,7 @@ import (
 )
 
 
-// TrackController is the refactored track controller
+// TrackController handles track-related HTTP endpoints.
 type TrackController struct {
 	BaseController
 	getTrackSummaryUseCase     *track.GetTrackSummaryUseCase
@@ -18,7 +18,7 @@ type TrackController struct {
 	invalidateLibraryCacheUseCase *track.InvalidateLibraryCacheUseCase
 }
 
-// Creates track controller.
+// NewTrackController creates a track controller with the given use cases.
 func NewTrackController(
 	getTrackSummaryUseCase *track.GetTrackSummaryUseCase,
 	deleteTracksByArtistUseCase *track.DeleteTracksByArtistUseCase,
@@ -37,7 +37,7 @@ func NewTrackController(
 	}
 }
 
-// Invalidates library cache.
+// InvalidateLibraryCache clears the cached user tracks and summary entries.
 func (tc *TrackController) InvalidateLibraryCache(c *gin.Context) {
 	ctx := c.Request.Context()
 	msg, err := tc.invalidateLibraryCacheUseCase.Execute(ctx)
@@ -48,7 +48,8 @@ func (tc *TrackController) InvalidateLibraryCache(c *gin.Context) {
 	tc.JSONSuccess(c, gin.H{"message": msg})
 }
 
-// Fetches track summary.
+// GetTrackSummary retrieves a summary of the user's saved tracks grouped by artist.
+// Supports optional min, max, and genre query parameters for filtering.
 func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 	var req track.RangeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -77,7 +78,7 @@ func (tc *TrackController) GetTrackSummary(c *gin.Context) {
 	tc.JSONSuccess(c, response)
 }
 
-// Fetches tracks by artist.
+// GetTracksByArtist retrieves all saved tracks by the specified artist.
 func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 	// Get artist ID from URL
 	idArtistString := c.Param("id_artist")
@@ -104,7 +105,7 @@ func (tc *TrackController) GetTracksByArtist(c *gin.Context) {
 	tc.JSONSuccess(c, response)
 }
 
-// Deletes track by artist.
+// DeleteTrackByArtist removes all saved tracks by the specified artist from the library.
 func (tc *TrackController) DeleteTrackByArtist(c *gin.Context) {
 	// Get artist ID from URL
 	idArtistString := c.Param("id_artist")
@@ -125,7 +126,7 @@ func (tc *TrackController) DeleteTrackByArtist(c *gin.Context) {
 	tc.JSONSuccess(c, gin.H{"message": "Tracks deleted successfully"})
 }
 
-// Deletes track.
+// DeleteTrack removes a single track from the user's library.
 func (tc *TrackController) DeleteTrack(c *gin.Context) {
 	// Get track ID from URL
 	idTrackString := c.Param("id_track")
@@ -146,7 +147,8 @@ func (tc *TrackController) DeleteTrack(c *gin.Context) {
 	tc.JSONSuccess(c, gin.H{"message": "Track deleted successfully"})
 }
 
-// Deletes track by range.
+// DeleteTrackByRange removes all saved tracks whose primary artist has a track count
+// within the specified range. At least one of min or max must be provided.
 func (tc *TrackController) DeleteTrackByRange(c *gin.Context) {
 	var req track.RangeRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

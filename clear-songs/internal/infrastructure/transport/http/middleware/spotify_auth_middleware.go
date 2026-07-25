@@ -1,3 +1,6 @@
+// Package middleware provides HTTP middleware for request processing, authentication,
+// and session management. It integrates with the Gin framework and enforces security
+// policies at the transport layer.
 package middleware
 
 import (
@@ -8,7 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Spotify auth middleware.
+// SpotifyAuthMiddleware verifies that a Spotify repository has been attached to the
+// Gin context by SessionMiddleware. Aborts with 401 Unauthorized if the repository
+// is missing or nil.
 func SpotifyAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get Spotify repository from context (set by SessionMiddleware)

@@ -1,3 +1,6 @@
+// Package di provides dependency injection for the application. It wires together
+// repositories, use cases, and configuration into a single Container that can be
+// passed to HTTP handlers and middleware.
 package di
 
 import (
@@ -52,7 +55,9 @@ type Container struct {
 	DeletePlaylistAndLibraryUseCase *playlist.DeletePlaylistAndLibraryTracksUseCase
 }
 
-// Creates container.
+// NewContainer initializes all application dependencies: repositories, OAuth config,
+// and use cases. Redis is required; Postgres and Gemini are optional and fall back
+// to no-op implementations if unavailable.
 func NewContainer() (*Container, error) {
 	// Initialize OAuth config
 	oauthConfig, err := GetOAuth2Config()
@@ -136,7 +141,9 @@ func NewContainer() (*Container, error) {
 	return container, nil
 }
 
-// Fetches oauth2 config.
+// GetOAuth2Config builds the OAuth2 configuration from environment variables
+// (CLIENT_ID, CLIENT_SECRET, REDIRECT_URL/REDIRECT_URI). Returns an error if
+// any required variable is missing.
 func GetOAuth2Config() (*oauth2.Config, error) {
 	clientID := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("CLIENT_SECRET")

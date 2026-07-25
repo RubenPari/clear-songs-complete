@@ -1,3 +1,5 @@
+// Package http configures the HTTP transport layer. It wires up Gin routes,
+// middleware, and controllers using the DI container.
 package http
 
 import (
@@ -7,16 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/**
- * SetUpRoutes configures all HTTP routes using dependency injection
- *
- * This version uses the DI container to inject dependencies into controllers
- * and middleware, eliminating the need for global variables.
- *
- * @param server - The Gin engine instance to configure routes on
- * @param container - The dependency injection container
- */
-// Registers HTTP routes.
+// SetUpRoutes configures all HTTP routes on the Gin engine using the DI container
+// for dependency injection. It registers health, auth, track, and playlist endpoints
+// with appropriate middleware chains.
 func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	setUpHealthRoute(server)
 
@@ -97,7 +92,7 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 	}
 }
 
-// Registers the unauthenticated health endpoint before application middleware.
+// setUpHealthRoute registers the unauthenticated health check endpoint.
 func setUpHealthRoute(server *gin.Engine) {
 	server.GET("/healthz", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})

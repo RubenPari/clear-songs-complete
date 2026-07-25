@@ -7,7 +7,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// Session middleware.
+// SessionMiddleware retrieves the cached OAuth token and configures the Spotify
+// repository with the user's access token. It stores the repositories in the Gin
+// context for downstream handlers and middleware.
 func SessionMiddleware(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,

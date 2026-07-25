@@ -8,73 +8,73 @@ import (
 	"github.com/RubenPari/clear-songs/internal/domain/shared"
 )
 
-// NoOpCacheRepository is a no-op implementation of CacheRepository
-// Used when Redis is not available
+// NoOpCacheRepository is a no-op implementation of CacheRepository used when
+// Redis is not available. All operations return nil or empty values.
 type NoOpCacheRepository struct{}
 
-// Creates no op cache repository.
+// NewNoOpCacheRepository creates a no-op cache repository.
 func NewNoOpCacheRepository() shared.CacheRepository {
 	return &NoOpCacheRepository{}
 }
 
-// Sets token.
+// SetToken is a no-op.
 func (n *NoOpCacheRepository) SetToken(ctx context.Context, token *oauth2.Token) error {
-	return nil // No-op
+	return nil
 }
 
-// Fetches token.
+// GetToken always returns nil.
 func (n *NoOpCacheRepository) GetToken(ctx context.Context) (*oauth2.Token, error) {
-	return nil, nil // No token found
+	return nil, nil
 }
 
-// Clears token.
+// ClearToken is a no-op.
 func (n *NoOpCacheRepository) ClearToken(ctx context.Context) error {
-	return nil // No-op
+	return nil
 }
 
-// Fetches user tracks.
+// GetUserTracks always returns nil.
 func (n *NoOpCacheRepository) GetUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
-	return nil, nil // No cache
+	return nil, nil
 }
 
-// Sets user tracks.
+// SetUserTracks is a no-op.
 func (n *NoOpCacheRepository) SetUserTracks(ctx context.Context, tracks []spotifyAPI.SavedTrack, ttl time.Duration) error {
-	return nil // No-op
+	return nil
 }
 
-// Invalidates user tracks.
+// InvalidateUserTracks is a no-op.
 func (n *NoOpCacheRepository) InvalidateUserTracks(ctx context.Context) error {
-	return nil // No-op
+	return nil
 }
 
-// Fetches playlist tracks.
+// GetPlaylistTracks always returns nil.
 func (n *NoOpCacheRepository) GetPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) ([]spotifyAPI.PlaylistTrack, error) {
-	return nil, nil // No cache
+	return nil, nil
 }
 
-// Sets playlist tracks.
+// SetPlaylistTracks is a no-op.
 func (n *NoOpCacheRepository) SetPlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID, tracks []spotifyAPI.PlaylistTrack, ttl time.Duration) error {
-	return nil // No-op
+	return nil
 }
 
-// Invalidates playlist tracks.
+// InvalidatePlaylistTracks is a no-op.
 func (n *NoOpCacheRepository) InvalidatePlaylistTracks(ctx context.Context, playlistID spotifyAPI.ID) error {
-	return nil // No-op
+	return nil
 }
 
-// Fetches.
+// Get always returns (false, nil).
 func (n *NoOpCacheRepository) Get(ctx context.Context, key string, target interface{}) (bool, error) {
-	return false, nil // Not found
+	return false, nil
 }
 
-// Sets.
+// Set is a no-op.
 func (n *NoOpCacheRepository) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
-	return nil // No-op
+	return nil
 }
 
-// Deletes.
+// Delete is a no-op.
 func (n *NoOpCacheRepository) Delete(ctx context.Context, key string) error {
-	return nil // No-op
+	return nil
 }
 
 // Ensure NoOpCacheRepository implements CacheRepository interface

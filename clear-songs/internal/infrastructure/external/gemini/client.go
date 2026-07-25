@@ -1,3 +1,7 @@
+// Package gemini implements the AIRepository interface using Google's Gemini API.
+// It provides AI-based genre resolution for artists when Spotify metadata is
+// insufficient. The implementation supports both batch and single-artist requests,
+// with automatic fallback to individual calls when batch requests fail.
 package gemini
 
 import (
@@ -19,10 +23,10 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Redact Google API key in error strings (full request URL may appear in errors).
+// googleAPIKeyQuery redacts Google API keys from error strings.
 var googleAPIKeyQuery = regexp.MustCompile(`([?&])key=[A-Za-z0-9_-]+`)
 
-// Redact google apikey in string.
+// redactGoogleAPIKeyInString replaces API key query parameters with "REDACTED".
 func redactGoogleAPIKeyInString(msg string) string {
 	return googleAPIKeyQuery.ReplaceAllString(msg, "${1}key=REDACTED")
 }
@@ -31,7 +35,7 @@ func redactGoogleAPIKeyInString(msg string) string {
 // available to new API users (404); see https://ai.google.dev/gemini-api/docs/models
 const DefaultGeminiModel = "gemini-2.5-flash"
 
-// Gemini model from env.
+// geminiModelFromEnv reads the Gemini model name from GEMINI_MODEL environment variable.
 func geminiModelFromEnv() string {
 	if m := strings.TrimSpace(os.Getenv("GEMINI_MODEL")); m != "" {
 		return m
@@ -39,7 +43,7 @@ func geminiModelFromEnv() string {
 	return DefaultGeminiModel
 }
 
-// Gemini genre batch size.
+// geminiGenreBatchSize reads the batch size from GEMINI_GENRE_BATCH_SIZE environment variable.
 func geminiGenreBatchSize() int {
 	const defaultN = 24
 	s := strings.TrimSpace(os.Getenv("GEMINI_GENRE_BATCH_SIZE"))
@@ -53,7 +57,7 @@ func geminiGenreBatchSize() int {
 	return n
 }
 
-// Gemini genre batch parallel.
+// geminiGenreBatchParallel reads the parallelism level from GEMINI_GENRE_BATCH_PARALLEL.
 func geminiGenreBatchParallel() int64 {
 	const defaultP = 2
 	s := strings.TrimSpace(os.Getenv("GEMINI_GENRE_BATCH_PARALLEL"))
@@ -67,7 +71,7 @@ func geminiGenreBatchParallel() int64 {
 	return int64(p)
 }
 
-// Gemini request timeout sec.
+// geminiRequestTimeoutSec reads the request timeout from GEMINI_REQUEST_TIMEOUT_SEC.
 func geminiRequestTimeoutSec() int {
 	const defaultSec = 25
 	s := strings.TrimSpace(os.Getenv("GEMINI_REQUEST_TIMEOUT_SEC"))
@@ -87,7 +91,7 @@ type GeminiRepository struct {
 	model  string
 }
 
-// Creates gemini repository.
+// NewGeminiRepository creates a Gemini client with the given API key.
 func NewGeminiRepository(ctx context.Context, apiKey string) (*GeminiRepository, error) {
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
@@ -103,7 +107,10 @@ func NewGeminiRepository(ctx context.Context, apiKey string) (*GeminiRepository,
 	}, nil
 }
 
-// Resolves artist genres.
+// ResolveArtistGenres resolves genres for multiple artists in parallel. It splits
+// the lookups into chunks, processes them concurrently with a semaphore, and merges
+// the results. Uses batch requests when possible, falling back to individual calls
+// on failure.
 func (r *GeminiRepository) ResolveArtistGenres(ctx context.Context, lookups []shared.AIArtistLookup) (map[string]string, error) {
 	if len(lookups) == 0 {
 		return map[string]string{}, nil
@@ -147,7 +154,7 @@ func (r *GeminiRepository) ResolveArtistGenres(ctx context.Context, lookups []sh
 	return merged, nil
 }
 
-// Chunk lookups.
+// chunkLookups splits a slice of lookups into chunks of the given size.
 func chunkLookups(lookups []shared.AIArtistLookup, size int) [][]shared.AIArtistLookup {
 	if size < 1 {
 		size = 24
@@ -163,7 +170,8 @@ func chunkLookups(lookups []shared.AIArtistLookup, size int) [][]shared.AIArtist
 	return out
 }
 
-// Resolves chunk with fallback.
+// resolveChunkWithFallback attempts batch resolution first, then falls back to
+// individual single-artist calls if the batch fails or returns incomplete results.
 func (r *GeminiRepository) resolveChunkWithFallback(ctx context.Context, chunk []shared.AIArtistLookup) map[string]string {
 	if len(chunk) == 1 {
 		return r.resolveOne(ctx, chunk[0])
@@ -195,7 +203,7 @@ func (r *GeminiRepository) resolveChunkWithFallback(ctx context.Context, chunk [
 	return out
 }
 
-// Resolves one.
+// resolveOne resolves a single artist lookup.
 func (r *GeminiRepository) resolveOne(ctx context.Context, l shared.AIArtistLookup) map[string]string {
 	m := make(map[string]string, 1)
 	g, err := r.resolveArtistGenreSingle(ctx, l.Name)
@@ -212,7 +220,7 @@ func (r *GeminiRepository) resolveOne(ctx context.Context, l shared.AIArtistLook
 	return m
 }
 
-// Resolves chunk singles.
+// resolveChunkSingles resolves each artist in the chunk individually.
 func (r *GeminiRepository) resolveChunkSingles(ctx context.Context, chunk []shared.AIArtistLookup) map[string]string {
 	out := make(map[string]string, len(chunk))
 	for _, l := range chunk {
@@ -227,12 +235,14 @@ func (r *GeminiRepository) resolveChunkSingles(ctx context.Context, chunk []shar
 	return out
 }
 
+// genreBatchItem represents a single item in the batch JSON response.
 type genreBatchItem struct {
 	Key   string `json:"key"`
 	Genre string `json:"genre"`
 }
 
-// Resolves chunk batch.
+// resolveChunkBatch sends a batch request to Gemini asking for genres for multiple
+// artists at once. Returns a map of artist key to genre.
 func (r *GeminiRepository) resolveChunkBatch(ctx context.Context, chunk []shared.AIArtistLookup) (map[string]string, error) {
 	var sb strings.Builder
 	for _, l := range chunk {
@@ -279,7 +289,8 @@ Input lines (key TAB display name):
 	return out, nil
 }
 
-// Parse genre batch json.
+// parseGenreBatchJSON parses the JSON array from Gemini's response, stripping any
+// markdown code fences that the model may have added.
 func parseGenreBatchJSON(raw string) ([]genreBatchItem, error) {
 	s := strings.TrimSpace(raw)
 	s = stripMarkdownJSONFence(s)
@@ -300,9 +311,10 @@ func parseGenreBatchJSON(raw string) ([]genreBatchItem, error) {
 	return items, nil
 }
 
+// markdownJSONFence matches opening markdown code fences for JSON.
 var markdownJSONFence = regexp.MustCompile("(?s)^```(?:json)?\\s*")
 
-// Strip markdown jsonfence.
+// stripMarkdownJSONFence removes markdown code fences from Gemini responses.
 func stripMarkdownJSONFence(s string) string {
 	s = strings.TrimSpace(s)
 	if !strings.HasPrefix(s, "```") {
@@ -316,7 +328,8 @@ func stripMarkdownJSONFence(s string) string {
 	return s
 }
 
-// Resolves artist genre single.
+// resolveArtistGenreSingle sends a single-artist request to Gemini asking for
+// the primary genre of the given artist.
 func (r *GeminiRepository) resolveArtistGenreSingle(ctx context.Context, artistName string) (string, error) {
 	model := r.client.GenerativeModel(r.model)
 	model.SetTemperature(0)

@@ -15,7 +15,7 @@ type PostgresRepository struct {
 	db *gorm.DB
 }
 
-// First artist name.
+// firstArtistName extracts the name of the first artist, returning "Unknown Artist" if empty.
 func firstArtistName(artists []spotifyAPI.SimpleArtist) string {
 	if len(artists) == 0 {
 		return "Unknown Artist"
@@ -26,7 +26,7 @@ func firstArtistName(artists []spotifyAPI.SimpleArtist) string {
 	return artists[0].Name
 }
 
-// Spotify url.
+// spotifyURL extracts the Spotify URL from a map of external URLs.
 func spotifyURL(urls map[string]string) string {
 	if urls == nil {
 		return ""
@@ -34,7 +34,8 @@ func spotifyURL(urls map[string]string) string {
 	return urls["spotify"]
 }
 
-// Creates postgres repository.
+// NewPostgresRepository creates a Postgres repository. Returns a NoOp implementation
+// if the database connection is nil.
 func NewPostgresRepository(db *gorm.DB) shared.DatabaseRepository {
 	if db == nil {
 		return &NoOpDatabaseRepository{}
@@ -42,7 +43,7 @@ func NewPostgresRepository(db *gorm.DB) shared.DatabaseRepository {
 	return &PostgresRepository{db: db}
 }
 
-// Save tracks backup.
+// SaveTracksBackup saves playlist tracks to the database backup table.
 func (r *PostgresRepository) SaveTracksBackup(tracks []spotifyAPI.PlaylistTrack) error {
 	zap.L().Info("saving tracks backup started", zap.Int("count", len(tracks)))
 
@@ -68,7 +69,7 @@ func (r *PostgresRepository) SaveTracksBackup(tracks []spotifyAPI.PlaylistTrack)
 	return nil
 }
 
-// Save full tracks backup.
+// SaveFullTracksBackup saves full track objects to the database backup table.
 func (r *PostgresRepository) SaveFullTracksBackup(tracks []spotifyAPI.FullTrack) error {
 	zap.L().Info("saving full tracks backup started", zap.Int("count", len(tracks)))
 
@@ -94,7 +95,7 @@ func (r *PostgresRepository) SaveFullTracksBackup(tracks []spotifyAPI.FullTrack)
 	return nil
 }
 
-// Save to db.
+// saveToDB saves a track to the database, skipping if it already exists.
 func (r *PostgresRepository) saveToDB(track models.TrackDB) error {
 	var existingTrack models.TrackDB
 	result := r.db.First(&existingTrack, "id = ?", track.Id)
@@ -117,13 +118,13 @@ func (r *PostgresRepository) saveToDB(track models.TrackDB) error {
 // NoOpDatabaseRepository is a no-op implementation when database is not available
 type NoOpDatabaseRepository struct{}
 
-// Save tracks backup.
+// SaveTracksBackup logs a warning and returns nil.
 func (n *NoOpDatabaseRepository) SaveTracksBackup(tracks []spotifyAPI.PlaylistTrack) error {
 	zap.L().Warn("database not available, skipping track backup")
 	return nil // No-op
 }
 
-// Save full tracks backup.
+// SaveFullTracksBackup logs a warning and returns nil.
 func (n *NoOpDatabaseRepository) SaveFullTracksBackup(tracks []spotifyAPI.FullTrack) error {
 	zap.L().Warn("database not available, skipping track backup")
 	return nil // No-op

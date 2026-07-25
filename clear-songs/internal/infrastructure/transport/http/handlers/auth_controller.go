@@ -14,7 +14,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// AuthController is the auth controller using dependency injection
+// AuthController handles authentication-related HTTP endpoints.
 type AuthController struct {
 	BaseController
 	loginUC    *auth.LoginUseCase
@@ -23,7 +23,7 @@ type AuthController struct {
 	isAuthUC   *auth.IsAuthUseCase
 }
 
-// Creates auth controller.
+// NewAuthController creates an auth controller with the given use cases.
 func NewAuthController(
 	loginUC *auth.LoginUseCase,
 	callbackUC *auth.CallbackUseCase,
@@ -38,7 +38,7 @@ func NewAuthController(
 	}
 }
 
-// Starts.
+// Login initiates the OAuth flow by generating a state token and redirecting to Spotify.
 func (ac *AuthController) Login(c *gin.Context) {
 	state := uuid.NewString()
 	ac.setOAuthStateCookie(c, state)
@@ -47,7 +47,8 @@ func (ac *AuthController) Login(c *gin.Context) {
 	c.Redirect(http.StatusFound, url)
 }
 
-// Callback.
+// Callback handles the OAuth callback from Spotify. It validates the state parameter,
+// exchanges the authorization code for an access token, and redirects to the frontend.
 func (ac *AuthController) Callback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
@@ -82,7 +83,7 @@ func (ac *AuthController) Callback(c *gin.Context) {
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
-// Logs out.
+// Logout clears the user's OAuth token and ends the session.
 func (ac *AuthController) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 	if err := ac.logoutUC.Execute(ctx); err != nil {
@@ -93,7 +94,7 @@ func (ac *AuthController) Logout(c *gin.Context) {
 	ac.JSONSuccess(c, gin.H{"message": "User logged out successfully"})
 }
 
-// Checks whether auth.
+// IsAuth checks whether the user is currently authenticated and returns user info.
 func (ac *AuthController) IsAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	userInfo, err := ac.isAuthUC.Execute(ctx)
@@ -112,7 +113,7 @@ func (ac *AuthController) IsAuth(c *gin.Context) {
 	})
 }
 
-// Request is https.
+// requestIsHTTPS reports whether the request was made over HTTPS.
 func requestIsHTTPS(c *gin.Context) bool {
 	if c.Request.TLS != nil {
 		return true
@@ -120,13 +121,13 @@ func requestIsHTTPS(c *gin.Context) bool {
 	return strings.EqualFold(c.Request.Header.Get("X-Forwarded-Proto"), "https")
 }
 
-// Sets oauth state cookie.
+// setOAuthStateCookie stores the OAuth state token in a secure, HTTP-only cookie.
 func (ac *AuthController) setOAuthStateCookie(c *gin.Context, state string) {
 	secure := requestIsHTTPS(c)
 	c.SetCookie("oauth_state", state, 10*60, "/", "", secure, true)
 }
 
-// Clears oauth state cookie.
+// clearOAuthStateCookie removes the OAuth state cookie.
 func (ac *AuthController) clearOAuthStateCookie(c *gin.Context) {
 	secure := requestIsHTTPS(c)
 	c.SetCookie("oauth_state", "", -1, "/", "", secure, true)
