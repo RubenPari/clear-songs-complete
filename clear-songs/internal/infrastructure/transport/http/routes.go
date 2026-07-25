@@ -24,8 +24,6 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 		container.SpotifyRepo,
 		container.CacheRepo,
 	))
-	server.Use(middleware.CacheInvalidationMiddleware())
-
 	server.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{
 			"status":  "error",

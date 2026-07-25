@@ -36,7 +36,7 @@ func fetchPlaylistTracks(
 		return nil, err
 	}
 
-	if err := cacheRepo.SetPlaylistTracks(ctx, playlistID, tracks, 5*time.Minute); err != nil {
+	if err := cacheRepo.SetPlaylistTracks(ctx, playlistID, tracks, fetchPlaylistTracksCacheTTL); err != nil {
 		zap.L().Warn("failed to cache playlist tracks", zap.String("playlist_id", playlistID.String()), zap.Error(err))
 	}
 	return tracks, nil

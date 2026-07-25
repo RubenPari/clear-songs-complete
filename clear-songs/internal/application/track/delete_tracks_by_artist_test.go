@@ -40,6 +40,8 @@ func TestDeleteTracksByArtistUseCase_Execute(t *testing.T) {
 
 		err := useCase.Execute(ctx, artistID)
 		assert.NoError(t, err)
+		mockCacheRepo.AssertNumberOfCalls(t, "InvalidateUserTracks", 1)
+		mockCacheRepo.AssertExpectations(t)
 	})
 
 	t.Run("Error - Spotify API failure should return error", func(t *testing.T) {
