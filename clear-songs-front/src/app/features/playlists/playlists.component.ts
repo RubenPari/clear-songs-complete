@@ -42,6 +42,7 @@ export class PlaylistsComponent {
   loadingPlaylists = computed(() => this.playlistsResource.isLoading());
   
   selectedPlaylistId = signal<string | null>(null);
+  failedPlaylistImageIds = signal<Set<string>>(new Set());
 
   private actionCopy = computed(() => ({
     playlist: {
@@ -76,6 +77,14 @@ export class PlaylistsComponent {
   // Resets form.
   resetForm(): void {
     this.selectedPlaylistId.set(null);
+  }
+
+  hasPlaylistImage(playlist: UserPlaylist): boolean {
+    return Boolean(playlist.image_url) && !this.failedPlaylistImageIds().has(playlist.id);
+  }
+
+  onPlaylistImageError(playlistId: string): void {
+    this.failedPlaylistImageIds.update((ids) => new Set(ids).add(playlistId));
   }
 
   // Handle action.
