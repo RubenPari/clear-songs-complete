@@ -1,6 +1,10 @@
+/**
+ * Badge directive providing shadcn/spartan-style badge variants.
+ */
 import { computed, Directive, input } from '@angular/core';
 import { cn } from '../utils/cn';
 
+/** Available badge visual variants. */
 export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'muted';
 
 const VARIANTS: Record<BadgeVariant, string> = {
@@ -11,7 +15,7 @@ const VARIANTS: Record<BadgeVariant, string> = {
   muted: 'border-transparent bg-muted text-muted-foreground',
 };
 
-/** Pill badge — Spartan/shadcn style. */
+/** Pill badge directive with variant support. */
 @Directive({
   selector: '[appBadge]',
   standalone: true,

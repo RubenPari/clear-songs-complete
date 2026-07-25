@@ -1,9 +1,14 @@
+/**
+ * Confirm dialog component for displaying confirmation prompts.
+ * Supports default and destructive action styles.
+ */
 import { Component, inject } from '@angular/core';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { NgIcon } from '@ng-icons/core';
 
 import { ButtonDirective } from '../../ui/button.directive';
 
+/** Data structure for configuring the confirm dialog. */
 export interface ConfirmDialogData {
   title: string;
   message: string;
@@ -13,6 +18,10 @@ export interface ConfirmDialogData {
   danger?: boolean;
 }
 
+/**
+ * Modal dialog component for confirming user actions.
+ * Returns true on confirm, false on cancel.
+ */
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,

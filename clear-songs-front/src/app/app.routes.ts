@@ -1,3 +1,7 @@
+/**
+ * Application routes with lazy-loaded components and auth guard protection.
+ * Public routes (login, callback) are unprotected; all others require authentication.
+ */
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';

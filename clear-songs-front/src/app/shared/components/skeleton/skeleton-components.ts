@@ -1,9 +1,10 @@
 /**
- * Skeleton loading placeholders (Tailwind, design-system tokens).
- * Reduce perceived latency and layout shift while data loads.
+ * Skeleton loading placeholder components for reducing perceived latency.
+ * Uses Tailwind animations and design-system tokens.
  */
 import { Component, Input } from '@angular/core';
 
+/** Skeleton placeholder for stat cards. */
 @Component({
   selector: 'app-skeleton-stat',
   standalone: true,
@@ -19,6 +20,7 @@ import { Component, Input } from '@angular/core';
 })
 export class SkeletonStatComponent {}
 
+/** Skeleton placeholder for data tables with configurable row count. */
 @Component({
   selector: 'app-skeleton-table',
   standalone: true,
@@ -45,6 +47,7 @@ export class SkeletonTableComponent {
   }
 }
 
+/** Skeleton placeholder for bar charts with animated bars. */
 @Component({
   selector: 'app-skeleton-chart',
   standalone: true,

@@ -1,3 +1,6 @@
+/**
+ * Shared UI component barrel exports.
+ */
 export { ButtonDirective } from './button.directive';
 export type { ButtonVariant, ButtonSize } from './button.directive';
 export { CardDirective } from './card.directive';

@@ -1,8 +1,7 @@
 /**
- * Application Configuration
- * 
- * @file app.config.ts
- * @author Clear Songs Development Team
+ * Application configuration providing all Angular providers.
+ * Includes zoneless change detection, HTTP client with auth interceptor,
+ * i18n, routing, animations, toast notifications, and icons.
  */
 import { ApplicationConfig, provideZonelessChangeDetection, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -17,6 +16,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { APP_ICONS } from './shared/ui/icons';
 
+/** Root application configuration with all providers. */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),

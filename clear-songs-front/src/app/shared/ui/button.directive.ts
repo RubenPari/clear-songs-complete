@@ -1,6 +1,10 @@
+/**
+ * Button directive providing shadcn/spartan-style button variants.
+ */
 import { computed, Directive, input } from '@angular/core';
 import { cn } from '../utils/cn';
 
+/** Available button visual variants. */
 export type ButtonVariant =
   | 'default'
   | 'secondary'
@@ -8,6 +12,8 @@ export type ButtonVariant =
   | 'outline'
   | 'ghost'
   | 'link';
+
+/** Available button sizes. */
 export type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
 const BASE =
@@ -30,8 +36,8 @@ const SIZES: Record<ButtonSize, string> = {
 };
 
 /**
- * Spartan/shadcn-style button. Apply to <button> or <a>.
- * Usage: <button appBtn variant="default" size="lg">…</button>
+ * Spartan/shadcn-style button directive. Apply to <button> or <a>.
+ * @example <button appBtn variant="default" size="lg">Click me</button>
  */
 @Directive({
   selector: '[appBtn]',

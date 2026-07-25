@@ -1,3 +1,6 @@
+/**
+ * Curated set of Lucide icons used across the application.
+ */
 import {
   lucideArrowRight,
   lucideCheck,

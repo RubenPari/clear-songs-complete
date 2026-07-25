@@ -1,3 +1,7 @@
+/**
+ * Angular application entry point.
+ * Bootstraps the root App component with the application configuration.
+ */
 import { bootstrapApplication } from '@angular/platform-browser';
 
 import { App } from './app/app';
