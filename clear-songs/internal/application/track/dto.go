@@ -19,7 +19,9 @@ type RangeRequest struct {
 	Genre string `form:"genre"`
 }
 
-// Validate range query.
+// ValidateRangeQuery validates the min/max query parameters and returns the resolved
+// values. Returns an error message if validation fails (e.g., min > max). A nil request
+// is treated as valid with zero values.
 func ValidateRangeQuery(req *RangeRequest) (min, max int, errMsg string) {
 	if req == nil {
 		return 0, 0, ""

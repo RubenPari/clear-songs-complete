@@ -10,9 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// userTracksCacheTTL is the duration for which the user's saved tracks are cached
+// in Redis before being re-fetched from the Spotify API.
 const userTracksCacheTTL = 5 * time.Minute
 
-// Fetches user tracks.
+// getUserTracks retrieves the user's saved tracks, first checking the cache and
+// falling back to the Spotify API on a cache miss. The result is written back to
+// the cache with a 5-minute TTL.
 func getUserTracks(ctx context.Context, spotifyRepo shared.SpotifyRepository, cacheRepo shared.CacheRepository) ([]spotifyAPI.SavedTrack, error) {
 	cached, err := cacheRepo.GetUserTracks(ctx)
 	if err == nil && cached != nil {

@@ -16,7 +16,10 @@ type DeleteTrackUseCase struct {
 	databaseRepo shared.DatabaseRepository
 }
 
-// Creates delete track use case.
+// NewDeleteTrackUseCase creates a use case that removes a single track from the
+// user's library. It backs up the track to Postgres before deletion. It depends
+// on SpotifyRepository for track operations, CacheRepository for invalidation,
+// and DatabaseRepository for backup storage.
 func NewDeleteTrackUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -29,7 +32,9 @@ func NewDeleteTrackUseCase(
 	}
 }
 
-// Execute.
+// Execute removes a single track from the user's library. It fetches track details,
+// saves a backup to the database (logging a warning on failure but continuing),
+// deletes the track from Spotify, and invalidates the user tracks cache.
 func (uc *DeleteTrackUseCase) Execute(ctx context.Context, trackID spotifyAPI.ID) error {
 	// 1. Get track details for backup
 	track, err := uc.spotifyRepo.GetTrack(ctx, trackID)

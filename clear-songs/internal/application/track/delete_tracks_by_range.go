@@ -13,7 +13,9 @@ type DeleteTracksByRangeUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// NewDeleteTracksByRangeUseCase creates a new DeleteTracksByRangeUseCase.
+// NewDeleteTracksByRangeUseCase creates a use case that removes all saved tracks
+// whose primary artist has a track count within the specified range. It depends on
+// SpotifyRepository for track fetching and deletion, and CacheRepository for invalidation.
 func NewDeleteTracksByRangeUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,

@@ -13,7 +13,9 @@ type GetTracksByArtistUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// Creates get tracks by artist use case.
+// NewGetTracksByArtistUseCase creates a use case that retrieves all saved tracks
+// by a specific artist. It depends on SpotifyRepository for track fetching and
+// CacheRepository for caching.
 func NewGetTracksByArtistUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -24,7 +26,8 @@ func NewGetTracksByArtistUseCase(
 	}
 }
 
-// Execute.
+// Execute retrieves all saved tracks whose primary artist matches the given artistID.
+// It fetches the user's tracks (from cache or API) and filters them by artist.
 func (uc *GetTracksByArtistUseCase) Execute(ctx context.Context, artistID spotifyAPI.ID) ([]spotifyAPI.SavedTrack, error) {
 	// 1. Get user tracks (from cache or API)
 	tracks, err := uc.getUserTracks(ctx)
@@ -41,7 +44,8 @@ func (uc *GetTracksByArtistUseCase) Execute(ctx context.Context, artistID spotif
 	return filteredTracks, nil
 }
 
-// Fetches user tracks.
+// getUserTracks delegates to the shared helper that reads from cache or fetches
+// from the Spotify API.
 func (uc *GetTracksByArtistUseCase) getUserTracks(ctx context.Context) ([]spotifyAPI.SavedTrack, error) {
 	return getUserTracks(ctx, uc.spotifyRepo, uc.cacheRepo)
 }

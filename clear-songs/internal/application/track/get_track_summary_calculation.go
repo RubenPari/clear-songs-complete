@@ -18,7 +18,9 @@ type artistData struct {
 	count int
 }
 
-// Calculate summary.
+// calculateSummary orchestrates the full summary pipeline: group tracks
+// by primary artist, batch-fetch artist details from Spotify, then build
+// per-artist summaries with genre resolution (Spotify first, AI fallback).
 func (uc *GetTrackSummaryUseCase) calculateSummary(
 	ctx context.Context,
 	tracks []spotifyAPI.SavedTrack,
@@ -32,7 +34,9 @@ func (uc *GetTrackSummaryUseCase) calculateSummary(
 	return uc.buildArtistSummary(ctx, artistMap, artistDetails, min, max, genre)
 }
 
-// Group tracks by primary artist.
+// groupTracksByPrimaryArtist counts saved tracks per primary artist.
+// When the Spotify artist ID is empty it falls back to a lowercased,
+// trimmed artist name as the map key.
 func groupTracksByPrimaryArtist(tracks []spotifyAPI.SavedTrack) map[string]artistData {
 	artistMap := make(map[string]artistData)
 
@@ -57,7 +61,8 @@ func groupTracksByPrimaryArtist(tracks []spotifyAPI.SavedTrack) map[string]artis
 	return artistMap
 }
 
-// Collect artist ids.
+// collectArtistIDs extracts non-empty Spotify artist IDs from the map
+// produced by groupTracksByPrimaryArtist.
 func collectArtistIDs(artistMap map[string]artistData) []spotifyAPI.ID {
 	artistIDs := make([]spotifyAPI.ID, 0, len(artistMap))
 	for _, data := range artistMap {
@@ -70,7 +75,10 @@ func collectArtistIDs(artistMap map[string]artistData) []spotifyAPI.ID {
 	return artistIDs
 }
 
-// Fetch artist details.
+// fetchArtistDetails performs a single batched GetArtists call and returns
+// a map keyed by artist ID. Returns an empty map (with a warning log) on
+// API failure rather than propagating the error, so the summary can still
+// be built with partial data.
 func (uc *GetTrackSummaryUseCase) fetchArtistDetails(ctx context.Context, artistIDs []spotifyAPI.ID) map[string]*spotifyAPI.FullArtist {
 	artistDetails := make(map[string]*spotifyAPI.FullArtist)
 	if len(artistIDs) == 0 {
@@ -92,7 +100,11 @@ func (uc *GetTrackSummaryUseCase) fetchArtistDetails(ctx context.Context, artist
 	return artistDetails
 }
 
-// Builds artist summary.
+// buildArtistSummary uses a two-pass algorithm. Pass 1 resolves genres for
+// every artist that passes the range filter: first via Spotify metadata,
+// then via the per-artist canonical-genre cache, and finally via a batched
+// AI call for the remaining artists. Pass 2 builds the final summary slice,
+// applying both the range filter and the genre filter.
 func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	ctx context.Context,
 	artistMap map[string]artistData,
@@ -172,7 +184,9 @@ func (uc *GetTrackSummaryUseCase) buildArtistSummary(
 	return summary
 }
 
-// Applies aigenre result.
+// applyAIGenreResult normalises the raw AI genre string, attempts to map it
+// to a canonical genre via ResolveGenre, caches the result on success, and
+// returns the canonical label (or empty string on failure).
 func (uc *GetTrackSummaryUseCase) applyAIGenreResult(ctx context.Context, artistName, mapKey, aiRaw string) string {
 	if aiRaw == "" {
 		zap.L().Debug("AI fallback empty genre", zap.String("artist", artistName))
@@ -193,7 +207,9 @@ func (uc *GetTrackSummaryUseCase) applyAIGenreResult(ctx context.Context, artist
 	return canonical
 }
 
-// Passes range filter.
+// passesRangeFilter reports whether a track count falls within the
+// inclusive [min, max] bounds. A zero value for min or max disables
+// that side of the filter.
 func passesRangeFilter(count, min, max int) bool {
 	if min > 0 && count < min {
 		return false
@@ -205,7 +221,9 @@ func passesRangeFilter(count, min, max int) bool {
 	return true
 }
 
-// Extract artist metadata.
+// extractArtistMetadata returns the medium-sized image URL and the Spotify
+// genre list for the given artist ID. Returns ("", nil) when the artist
+// was not found in the details map.
 func extractArtistMetadata(artistID string, artistDetails map[string]*spotifyAPI.FullArtist) (string, []string) {
 	if artist, ok := artistDetails[artistID]; ok {
 		return spotifyhelpers.GetMediumImage(artist.Images), artist.Genres

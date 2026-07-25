@@ -18,12 +18,15 @@ var (
 	artistAIGenreTTLOnce sync.Once
 )
 
-// Artist aigenre cache key.
+// artistAIGenreCacheKey constructs a Redis cache key for the AI-resolved canonical
+// genre of a specific artist (identified by artistKey).
 func artistAIGenreCacheKey(artistKey string) string {
 	return fmt.Sprintf(shared.CacheKeyArtistAIGenreFmt, artistKey)
 }
 
-// Artist aigenre cache ttl reads the environment once and caches the result.
+// artistAIGenreCacheTTL reads the ARTIST_AI_GENRE_CACHE_TTL_SEC environment variable
+// once and returns the corresponding duration. Falls back to 7 days if the variable
+// is unset, invalid, or below 60 seconds.
 func artistAIGenreCacheTTL() time.Duration {
 	artistAIGenreTTLOnce.Do(func() {
 		const defaultSec = 7 * 24 * 3600
@@ -42,7 +45,9 @@ func artistAIGenreCacheTTL() time.Duration {
 	return artistAIGenreTTL
 }
 
-// Fetches cached artist canonical genre.
+// getCachedArtistCanonicalGenre attempts to read the AI-resolved canonical genre
+// for an artist from Redis. Returns the genre and true on cache hit, or empty
+// string and false on miss or error.
 func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Context, artistKey string) (string, bool) {
 	var s string
 	found, err := uc.cacheRepo.Get(ctx, artistAIGenreCacheKey(artistKey), &s)
@@ -56,7 +61,9 @@ func (uc *GetTrackSummaryUseCase) getCachedArtistCanonicalGenre(ctx context.Cont
 	return s, true
 }
 
-// Sets cached artist canonical genre.
+// setCachedArtistCanonicalGenre writes the AI-resolved canonical genre for an artist
+// to Redis with the configured TTL. Empty values are not cached. Errors are logged
+// but do not propagate.
 func (uc *GetTrackSummaryUseCase) setCachedArtistCanonicalGenre(ctx context.Context, artistKey, canonical string) {
 	if strings.TrimSpace(canonical) == "" {
 		return

@@ -8,6 +8,8 @@ import (
 	spotifyAPI "github.com/zmb3/spotify"
 )
 
+// userPlaylistsCacheTTL is the duration for which the user's playlists are cached
+// in Redis before being re-fetched from the Spotify API.
 const userPlaylistsCacheTTL = 2 * time.Minute
 
 // GetUserPlaylistsUseCase handles the business logic for getting user playlists
@@ -16,7 +18,9 @@ type GetUserPlaylistsUseCase struct {
 	cacheRepo   shared.CacheRepository
 }
 
-// Creates get user playlists use case.
+// NewGetUserPlaylistsUseCase creates a use case that retrieves all playlists owned
+// by the authenticated user. It depends on SpotifyRepository for playlist fetching
+// and CacheRepository for caching.
 func NewGetUserPlaylistsUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -27,7 +31,9 @@ func NewGetUserPlaylistsUseCase(
 	}
 }
 
-// Execute.
+// Execute retrieves all playlists owned by the authenticated user. It checks the
+// cache first, and on a miss it fetches all playlists from Spotify and caches the
+// result with a 2-minute TTL.
 func (uc *GetUserPlaylistsUseCase) Execute(ctx context.Context) ([]spotifyAPI.SimplePlaylist, error) {
 	cacheKey := shared.CacheKeyUserPlaylists
 

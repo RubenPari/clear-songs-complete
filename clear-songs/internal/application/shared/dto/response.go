@@ -35,7 +35,8 @@ func NewSuccess[T any](data T) APIResponse[T] {
 	}
 }
 
-// Creates error.
+// NewError creates a generic error response with the given machine-readable code
+// and human-readable message.
 func NewError(code, message string) APIResponse[any] {
 	return APIResponse[any]{
 		Success: false,
@@ -49,22 +50,24 @@ func NewError(code, message string) APIResponse[any] {
 	}
 }
 
-// Validation err.
+// ValidationErr creates a 400-style error response with the VALIDATION_ERROR code.
 func ValidationErr(message string) APIResponse[any] {
 	return NewError("VALIDATION_ERROR", message)
 }
 
-// Internal err.
+// InternalErr creates a 500-style error response with the INTERNAL_ERROR code.
 func InternalErr(message string) APIResponse[any] {
 	return NewError("INTERNAL_ERROR", message)
 }
 
-// Not found err.
+// NotFoundErr creates a 404-style error response with the NOT_FOUND code and a
+// message indicating the named resource was not found.
 func NotFoundErr(resource string) APIResponse[any] {
 	return NewError("NOT_FOUND", resource+" not found")
 }
 
-// Unauthorized err.
+// UnauthorizedErr creates a 401-style error response with the UNAUTHORIZED code
+// and a fixed message indicating authentication is required.
 func UnauthorizedErr() APIResponse[any] {
 	return NewError("UNAUTHORIZED", "Authentication required")
 }

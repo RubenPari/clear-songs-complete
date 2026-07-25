@@ -15,7 +15,10 @@ type DeletePlaylistAndLibraryTracksUseCase struct {
 	databaseRepo shared.DatabaseRepository
 }
 
-// Creates delete playlist and library tracks use case.
+// NewDeletePlaylistAndLibraryTracksUseCase creates a use case that removes all tracks
+// from a playlist and also removes them from the user's saved library. It backs up
+// tracks to Postgres before deletion. It depends on SpotifyRepository for track operations,
+// CacheRepository for invalidation, and DatabaseRepository for backup storage.
 func NewDeletePlaylistAndLibraryTracksUseCase(
 	spotifyRepo shared.SpotifyRepository,
 	cacheRepo shared.CacheRepository,
@@ -28,7 +31,10 @@ func NewDeletePlaylistAndLibraryTracksUseCase(
 	}
 }
 
-// Execute.
+// Execute removes all tracks from the specified playlist and also removes them from
+// the user's saved library. It fetches the playlist tracks, saves a backup to the
+// database (logging a warning on failure), deletes from both the playlist and library,
+// and invalidates both caches.
 func (uc *DeletePlaylistAndLibraryTracksUseCase) Execute(ctx context.Context, playlistID spotifyAPI.ID) error {
 	// Fetch tracks from the playlist, either from cache or Spotify API
 	tracks, err := fetchPlaylistTracks(ctx, uc.spotifyRepo, uc.cacheRepo, playlistID)

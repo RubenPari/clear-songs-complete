@@ -1,3 +1,6 @@
+// Package auth implements application-layer use cases for OAuth authentication
+// with Spotify. It handles login initiation, callback token exchange, logout,
+// and authentication status checks.
 package auth
 
 import (
