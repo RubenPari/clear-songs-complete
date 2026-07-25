@@ -1,3 +1,7 @@
+/**
+ * Callback component for handling Spotify OAuth redirect.
+ * Processes the authorization code and completes the authentication flow.
+ */
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,6 +10,11 @@ import { NgIcon } from '@ng-icons/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
+/**
+ * OAuth callback handler component.
+ * Extracts the authorization code from query params and completes login.
+ * Falls back to auth status check if no code is present.
+ */
 @Component({
   selector: 'app-callback',
   template: `
@@ -25,13 +34,13 @@ export class CallbackComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly translate = inject(TranslateService);
 
-  // Runs on component initialization.
   ngOnInit(): void {
     this.route.queryParams
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
         const code = params['code'];
 
+        // If authorization code is present, complete the OAuth flow.
         if (code) {
           this.authService.handleCallback(code)
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -46,6 +55,7 @@ export class CallbackComponent implements OnInit {
               },
             });
         } else {
+          // No code present - verify existing authentication status.
           this.authService.checkAuthStatus()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({

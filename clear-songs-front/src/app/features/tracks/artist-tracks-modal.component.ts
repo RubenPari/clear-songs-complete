@@ -1,3 +1,7 @@
+/**
+ * Modal component for viewing and managing tracks by a specific artist.
+ * Displays tracks grouped by album with options to delete individual tracks or entire albums.
+ */
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { Dialog, DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { finalize, forkJoin } from 'rxjs';
@@ -11,16 +15,22 @@ import { openConfirmDialog } from '../../core/utils/modal-helper';
 import { ApiResponse } from '../../core/models/api-response.model';
 import { ButtonDirective } from '../../shared/ui/button.directive';
 
+/** Group of tracks belonging to the same album. */
 interface AlbumGroup {
   album: string;
   imageUrl: string;
   tracks: Track[];
 }
 
+/** Data passed to the artist tracks modal dialog. */
 export interface ArtistTracksDialogData {
   artist: ArtistSummary;
 }
 
+/**
+ * Modal component for viewing and deleting tracks by artist.
+ * Groups tracks by album and provides bulk deletion operations.
+ */
 @Component({
   selector: 'app-artist-tracks-modal',
   standalone: true,
@@ -44,6 +54,7 @@ export class ArtistTracksModalComponent implements OnInit {
   deletingAlbum = signal<string | null>(null);
   private collapsedAlbums = signal<Set<string>>(new Set());
 
+  /** Groups tracks by album name using a Map-based approach. */
   albumGroups = computed<AlbumGroup[]>(() => {
     const grouped = new Map<string, Track[]>();
     for (const track of this.tracks()) {
@@ -61,17 +72,16 @@ export class ArtistTracksModalComponent implements OnInit {
     }));
   });
 
-  // Runs on component initialization.
   ngOnInit(): void {
     this.loadTracks();
   }
 
-  // Closes the dialog, reporting whether tracks changed.
+  /** Closes the dialog, returning whether tracks were modified. */
   close(): void {
     this.dialogRef.close(this.tracksChanged());
   }
 
-  // Loads tracks.
+  /** Loads all tracks for the artist from the API. */
   loadTracks(): void {
     this.isLoading.set(true);
     this.trackService
@@ -85,7 +95,7 @@ export class ArtistTracksModalComponent implements OnInit {
       });
   }
 
-  // Toggles album.
+  /** Toggles the collapsed state of an album. */
   toggleAlbum(albumName: string): void {
     this.collapsedAlbums.update((set) => {
       const next = new Set(set);
@@ -98,12 +108,12 @@ export class ArtistTracksModalComponent implements OnInit {
     });
   }
 
-  // Checks whether album collapsed.
+  /** Checks if an album is collapsed. */
   isAlbumCollapsed(albumName: string): boolean {
     return this.collapsedAlbums().has(albumName);
   }
 
-  // Deletes album tracks.
+  /** Deletes all tracks in an album after confirmation. Uses forkJoin for parallel deletion. */
   deleteAlbumTracks(group: AlbumGroup, event: Event): void {
     event.stopPropagation();
 
@@ -146,7 +156,7 @@ export class ArtistTracksModalComponent implements OnInit {
     });
   }
 
-  // Deletes track.
+  /** Deletes a single track after confirmation. */
   deleteTrack(track: Track): void {
     openConfirmDialog(this.dialog, {
       title: this.translate.instant('ARTIST_MODAL.DELETE_TRACK_TITLE'),

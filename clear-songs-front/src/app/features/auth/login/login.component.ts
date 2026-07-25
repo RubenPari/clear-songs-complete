@@ -1,9 +1,17 @@
+/**
+ * Login component for Spotify OAuth authentication.
+ * Displays feature highlights and initiates the login flow.
+ */
 import { Component, inject } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgIcon } from '@ng-icons/core';
 
 import { AuthService } from '../../../core/services/auth.service';
 
+/**
+ * Login page component with Spotify authentication button.
+ * Shows feature descriptions to inform users about the application.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -21,7 +29,7 @@ export class LoginComponent {
     { icon: 'lucideShieldCheck', title: 'LOGIN.FEATURE_BACKUP_TITLE', desc: 'LOGIN.FEATURE_BACKUP_DESC' },
   ];
 
-  // Starts with spotify.
+  /** Initiates the Spotify OAuth login flow. */
   loginWithSpotify(): void {
     this.authService.login();
   }

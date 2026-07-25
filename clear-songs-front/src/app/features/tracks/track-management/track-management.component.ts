@@ -1,3 +1,7 @@
+/**
+ * Track management component for deleting tracks by range.
+ * Provides a form for custom ranges and preset range buttons.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -13,12 +17,17 @@ import { ButtonDirective } from '../../../shared/ui/button.directive';
 import { CardDirective } from '../../../shared/ui/card.directive';
 import { InputDirective } from '../../../shared/ui/input.directive';
 
+/** Preset range configuration for quick selection. */
 interface PresetRange {
   readonly label: string;
   readonly min: number | null;
   readonly max: number | null;
 }
 
+/**
+ * Component for managing track deletion by range.
+ * Provides custom range input and preset range buttons.
+ */
 @Component({
   selector: 'app-track-management',
   templateUrl: './track-management.component.html',
@@ -62,7 +71,7 @@ export class TrackManagementComponent {
     );
   }
 
-  // Range validator.
+  /** Validates that min is not greater than max when both are provided. */
   static rangeValidator(form: AbstractControl): ValidationErrors | null {
     const min = form.get('min')?.value;
     const max = form.get('max')?.value;
@@ -73,7 +82,7 @@ export class TrackManagementComponent {
     return null;
   }
 
-  // Deletes by range.
+  /** Deletes tracks by range after confirmation. */
   deleteByRange(): void {
     if (this.rangeForm.invalid) {
       return;
@@ -113,7 +122,7 @@ export class TrackManagementComponent {
     ).subscribe();
   }
 
-  // Applies preset.
+  /** Applies a preset range to the form. */
   applyPreset(preset: PresetRange): void {
     this.rangeForm.patchValue({
       min: preset.min,

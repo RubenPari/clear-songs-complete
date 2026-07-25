@@ -1,3 +1,7 @@
+/**
+ * Playlists component for managing user playlists.
+ * Provides options to clear playlist tracks or clear both playlist and library tracks.
+ */
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Dialog } from '@angular/cdk/dialog';
@@ -13,8 +17,13 @@ import { confirmAndRunWithNotify } from '../../core/utils/confirm-run.helper';
 import { ButtonDirective } from '../../shared/ui/button.directive';
 import { CardDirective } from '../../shared/ui/card.directive';
 
+/** Type of playlist deletion action. */
 type PlaylistAction = 'playlist' | 'playlistAndLibrary';
 
+/**
+ * Component for viewing and managing user playlists.
+ * Supports clearing tracks from playlists with optional library cleanup.
+ */
 @Component({
   selector: 'app-playlists',
   templateUrl: './playlists.component.html',
@@ -69,25 +78,30 @@ export class PlaylistsComponent {
     });
   }
 
-  // Selects playlist.
+  /** Selects a playlist for operations. */
   selectPlaylist(playlist: UserPlaylist): void {
     this.selectedPlaylistId.set(playlist.id);
   }
 
-  // Resets form.
+  /** Clears the selected playlist. */
   resetForm(): void {
     this.selectedPlaylistId.set(null);
   }
 
+  /** Checks if the playlist has a valid image that hasn't failed to load. */
   hasPlaylistImage(playlist: UserPlaylist): boolean {
     return Boolean(playlist.image_url) && !this.failedPlaylistImageIds().has(playlist.id);
   }
 
+  /** Marks a playlist image as failed to load. */
   onPlaylistImageError(playlistId: string): void {
     this.failedPlaylistImageIds.update((ids) => new Set(ids).add(playlistId));
   }
 
-  // Handle action.
+  /**
+   * Executes a playlist action (clear playlist or clear playlist + library).
+   * Extracts nested error messages from the response structure.
+   */
   handleAction(action: PlaylistAction): void {
     const playlistId = this.selectedPlaylistId();
     if (!playlistId) {

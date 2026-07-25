@@ -1,3 +1,7 @@
+/**
+ * Dashboard component displaying track summary statistics and artist breakdown.
+ * Provides filtering, sorting, pagination, and deletion operations.
+ */
 import { Component, computed, effect, inject, Injector, runInInjectionContext, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +31,10 @@ import {
   visiblePageNumbers,
 } from './dashboard-view-model';
 
+/**
+ * Dashboard component for viewing track summary and artist statistics.
+ * Features: filtering by search/genre/range, sorting, pagination, and bulk deletion.
+ */
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -80,6 +88,7 @@ export class DashboardComponent {
   );
 
   constructor() {
+    // Reset pagination when filters change.
     effect(() => {
       this.selectedGenre();
       this.minRange();
@@ -93,6 +102,7 @@ export class DashboardComponent {
       }
     });
     
+    // Show/hide loading indicator based on resource state.
     effect(() => {
       const resource = this.trackSummaryResource;
       if (resource.isLoading()) {
@@ -102,6 +112,7 @@ export class DashboardComponent {
       }
     });
 
+    // Display error notification on resource failure.
     effect(() => {
       const resource = this.trackSummaryResource;
       if (resource.error()) {
@@ -165,7 +176,7 @@ export class DashboardComponent {
     return visiblePageNumbers(this.totalPages(), this.currentPage());
   });
 
-  // Loads track summary.
+  /** Invalidates the cache and reloads the track summary. */
   loadTrackSummary(): void {
     this.trackService.invalidateLibraryCache().subscribe({
       next: () => this.trackSummaryResource.reload(),
@@ -175,7 +186,7 @@ export class DashboardComponent {
     });
   }
 
-  // Applies filter.
+  /** Updates the search filter from an input event. */
   applyFilter(event?: Event): void {
     const target = event?.target as HTMLInputElement | null;
     if (target) {
@@ -183,20 +194,20 @@ export class DashboardComponent {
     }
   }
 
-  // Clears genre.
+  /** Clears the selected genre filter. */
   clearGenre(event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
     this.selectedGenre.set('');
   }
 
-  // Coerces range draft.
+  /** Coerces a string or number to a valid number for range inputs. */
   coerceRangeDraft(value: string | number): number {
     const n = typeof value === 'number' ? value : parseInt(String(value), 10);
     return Number.isFinite(n) ? n : 0;
   }
 
-  // Applies range filter.
+  /** Applies the range filter from draft values, normalizing and clamping to max track count. */
   applyRangeFilter(): void {
     const cap = this.maxTrackCount();
     const [minV, maxV] = normalizeRange(this.rangeMinDraft(), this.rangeMaxDraft(), cap);
@@ -207,7 +218,7 @@ export class DashboardComponent {
     this.maxRange.set(maxV);
   }
 
-  // Resets filters.
+  /** Resets all filters to their default values. */
   resetFilters(): void {
     this.searchFilter.set('');
     this.selectedGenre.set('');
@@ -218,7 +229,7 @@ export class DashboardComponent {
     this.rangeMaxDraft.set(cap);
   }
 
-  // Sorts table.
+  /** Toggles sort direction or changes sort column. */
   sortTable(column: ArtistSortColumn): void {
     if (this.sortColumn() === column) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
@@ -228,7 +239,7 @@ export class DashboardComponent {
     }
   }
 
-  // Changes page.
+  /** Navigates to the specified page if valid. */
   changePage(page: number): void {
     if (page < 1 || page > this.totalPages()) {
       return;
@@ -236,15 +247,17 @@ export class DashboardComponent {
     this.currentPage.set(page);
   }
 
+  /** Checks if the artist has a valid image that hasn't failed to load. */
   hasArtistImage(artist: ArtistSummary): boolean {
     return Boolean(artist.image_url) && !this.failedArtistImageIds().has(artist.id);
   }
 
+  /** Marks an artist image as failed to load. */
   onArtistImageError(artistId: string): void {
     this.failedArtistImageIds.update((ids) => new Set(ids).add(artistId));
   }
 
-  // Opens artist tracks.
+  /** Opens a modal displaying all tracks by the specified artist. */
   openArtistTracks(artist: ArtistSummary): void {
     const ref = this.dialog.open<boolean, ArtistTracksDialogData>(
       ArtistTracksModalComponent,
@@ -256,7 +269,7 @@ export class DashboardComponent {
       .subscribe(() => this.loadTrackSummary());
   }
 
-  // Deletes artist tracks.
+  /** Deletes all tracks by the specified artist after confirmation. */
   deleteArtistTracks(artist: ArtistSummary): void {
     openConfirmDialog(this.dialog, {
       title: this.translate.instant('DASHBOARD.DELETE_ARTIST_TITLE'),

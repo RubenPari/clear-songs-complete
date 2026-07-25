@@ -1,3 +1,7 @@
+/**
+ * Main layout component providing the application shell.
+ * Includes navigation, theme toggle, language switcher, and user menu.
+ */
 import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Component, DestroyRef, effect, inject, PLATFORM_ID, Renderer2, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -12,6 +16,10 @@ import { LoadingService } from '../../core/services/loading.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PreferencesService } from '../../core/services/preferences.service';
 
+/**
+ * Main layout component with responsive navigation and user controls.
+ * Manages theme, language, mobile menu, and logout operations.
+ */
 @Component({
   selector: 'app-main-layout',
   templateUrl: './main-layout.component.html',
@@ -42,6 +50,7 @@ export class MainLayoutComponent {
   ];
 
   constructor() {
+    // Track viewport size and close mobile nav on desktop.
     if (isPlatformBrowser(this.platformId)) {
       this.isHandset.set(window.innerWidth < 768);
       fromEvent(window, 'resize')
@@ -54,6 +63,7 @@ export class MainLayoutComponent {
         });
     }
 
+    // Toggle dark class on document root based on theme preference.
     effect(() => {
       const isDark = this.isDarkTheme();
       const root = this.document.documentElement;
@@ -65,22 +75,27 @@ export class MainLayoutComponent {
     });
   }
 
+  /** Toggles between dark and light themes. */
   toggleTheme(): void {
     this.preferencesService.toggleTheme();
   }
 
+  /** Switches between English and Italian languages. */
   switchLanguage(): void {
     this.preferencesService.switchLanguage();
   }
 
+  /** Toggles the mobile navigation menu. */
   toggleMobileNav(open?: boolean): void {
     this.mobileNavOpen.set(open ?? !this.mobileNavOpen());
   }
 
+  /** Toggles the user menu dropdown. */
   toggleUserMenu(open?: boolean): void {
     this.userMenuOpen.set(open ?? !this.userMenuOpen());
   }
 
+  /** Logs out the user with loading state and error handling. */
   logout(): void {
     this.userMenuOpen.set(false);
     this.mobileNavOpen.set(false);
