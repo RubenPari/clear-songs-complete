@@ -1,0 +1,98 @@
+name: clear-songs
+region: fra
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+
+ingress:
+  rules:
+    - component:
+        name: web
+      match:
+        path:
+          prefix: /
+
+services:
+  - name: web
+    github:
+      repo: RubenPari/clear-songs-complete
+      branch: production
+      deploy_on_push: true
+    source_dir: clear-songs-front
+    dockerfile_path: clear-songs-front/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs:
+      - key: API_URL
+        value: ""
+        scope: RUN_AND_BUILD_TIME
+      - key: NGINX_API_URL
+        value: http://api:8080
+        scope: RUN_TIME
+
+  - name: api
+    github:
+      repo: RubenPari/clear-songs-complete
+      branch: production
+      deploy_on_push: true
+    source_dir: clear-songs
+    dockerfile_path: clear-songs/Dockerfile
+    internal_ports: [8080]
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    health_check:
+      http_path: /healthz
+      port: 8080
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      failure_threshold: 3
+    liveness_health_check:
+      http_path: /healthz
+      port: 8080
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      failure_threshold: 3
+    envs:
+      - key: PORT
+        value: "8080"
+        scope: RUN_TIME
+      - key: GIN_MODE
+        value: release
+        scope: RUN_TIME
+      - key: REDIRECT_URI
+        value: ${APP_URL}/auth/callback
+        scope: RUN_TIME
+      - key: FRONTEND_URL
+        value: ${APP_URL}
+        scope: RUN_TIME
+      - key: DB_HOST
+        value: ${clear-songs-postgres.HOSTNAME}
+        scope: RUN_TIME
+      - key: DB_PORT
+        value: ${clear-songs-postgres.PORT}
+        scope: RUN_TIME
+      - key: DB_USER
+        value: ${clear-songs-postgres.USERNAME}
+        scope: RUN_TIME
+      - key: DB_PASSWORD
+        value: ${clear-songs-postgres.PASSWORD}
+        scope: RUN_TIME
+      - key: DB_NAME
+        value: ${clear-songs-postgres.DATABASE}
+        scope: RUN_TIME
+      - key: REDIS_URL
+        value: ${clear-songs-cache.DATABASE_PRIVATE_URL}
+        scope: RUN_TIME
+
+databases:
+  - name: clear-songs-postgres
+    engine: PG
+    production: true
+    cluster_name: clear-songs-postgres
+  - name: clear-songs-cache
+    engine: VALKEY
+    production: true
+    cluster_name: clear-songs-cache

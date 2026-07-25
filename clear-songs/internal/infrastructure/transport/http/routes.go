@@ -18,6 +18,8 @@ import (
  */
 // Registers HTTP routes.
 func SetUpRoutes(server *gin.Engine, container *di.Container) {
+	setUpHealthRoute(server)
+
 	server.Use(middleware.SessionMiddleware(
 		container.SpotifyRepo,
 		container.CacheRepo,
@@ -95,4 +97,11 @@ func SetUpRoutes(server *gin.Engine, container *di.Container) {
 			middleware.SpotifyAuthMiddleware(),
 			playlistController.DeleteAllPlaylistAndUserTracks)
 	}
+}
+
+// Registers the unauthenticated health endpoint before application middleware.
+func setUpHealthRoute(server *gin.Engine) {
+	server.GET("/healthz", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
 }

@@ -24,7 +24,7 @@ RUN apk --no-cache add ca-certificates
 # Copy the binary from the build stage
 COPY --from=build /app/clear-songs .
 
-# Expose port 8080 for Fly.io
+# App Platform routes traffic to this internal port.
 EXPOSE 8080
 
 # Run the binary with PORT from environment

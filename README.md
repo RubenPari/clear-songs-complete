@@ -58,6 +58,20 @@ Stop:
 docker compose down
 ```
 
+### Deploy to DigitalOcean App Platform
+
+The production App Platform specification is [`do/app.yaml`](do/app.yaml). It deploys the `production` branch to Frankfurt as two Docker services: a public Angular/Nginx `web` service and an internal Go `api` service. The API is deliberately not exposed publicly; Nginx proxies the existing `/auth`, `/track`, and `/playlist` paths to it over the app's private LAN.
+
+Before creating the app:
+
+1. Create managed PostgreSQL and Valkey clusters in Frankfurt named `clear-songs-postgres` and `clear-songs-cache`. Attach them to the app as trusted sources and use their private networking endpoints. Valkey is Redis-compatible and is required because it stores the OAuth token and application cache.
+2. Create and push the `production` branch, then connect `RubenPari/clear-songs-complete` to App Platform. The manifest enables automatic deploys from that branch.
+3. In the API component, set encrypted runtime secrets: `CLIENT_ID`, `CLIENT_SECRET`, and optionally `GEMINI_API_KEY`. Do not commit them or add them to `do/app.yaml`.
+4. Create the app using the manifest. App Platform supplies its `https://<app>.ondigitalocean.app` URL through `APP_URL`, so `REDIRECT_URI` and `FRONTEND_URL` are set automatically by the manifest.
+5. Copy the deployed URL and add `https://<app>.ondigitalocean.app/auth/callback` exactly to the Spotify app's Redirect URIs before trying OAuth.
+
+The API health endpoint is `GET /healthz`. After deployment, verify it in the App Platform health checks, then verify `/auth/is-auth`, the Spotify login/callback/logout flow, and an authenticated `/track/summary` request. This application currently stores one Spotify token in the shared cache, so a deployment supports one Spotify account at a time.
+
 ### Local development (without rebuilding the whole stack)
 
 **Backend** (`clear-songs/`):
@@ -151,6 +165,20 @@ Arresto:
 ```bash
 docker compose down
 ```
+
+### Deploy su DigitalOcean App Platform
+
+La specifica di produzione per App Platform è [`do/app.yaml`](do/app.yaml). Distribuisce il branch `production` a Francoforte con due servizi Docker: `web` pubblico (Angular/Nginx) e `api` Go interna. L’API non è esposta pubblicamente: Nginx inoltra gli endpoint `/auth`, `/track` e `/playlist` nella rete privata dell’app.
+
+Prima di creare l’app:
+
+1. Crea a Francoforte PostgreSQL e Valkey gestiti, denominati `clear-songs-postgres` e `clear-songs-cache`. Collegali all’app come trusted source e usa gli endpoint di rete privata. Valkey è compatibile con Redis ed è obbligatorio, perché contiene token OAuth e cache.
+2. Crea e pubblica il branch `production`, quindi collega `RubenPari/clear-songs-complete` ad App Platform. Il manifest abilita il deploy automatico da questo branch.
+3. Nel componente API imposta come segreti runtime cifrati `CLIENT_ID`, `CLIENT_SECRET` e, se serve, `GEMINI_API_KEY`. Non inserirli nel repository né in `do/app.yaml`.
+4. Crea l’app usando il manifest. App Platform espone il proprio URL `https://<app>.ondigitalocean.app` tramite `APP_URL`; `REDIRECT_URI` e `FRONTEND_URL` vengono quindi configurati automaticamente dal manifest.
+5. Copia l’URL distribuito e aggiungi esattamente `https://<app>.ondigitalocean.app/auth/callback` nei Redirect URI dell’app Spotify prima di provare il login OAuth.
+
+L’health endpoint API è `GET /healthz`. Dopo il deploy, verifica gli health check di App Platform, poi `/auth/is-auth`, il flusso login/callback/logout Spotify e una richiesta autenticata a `/track/summary`. L’applicazione memorizza attualmente un solo token Spotify nella cache condivisa: il deploy supporta quindi un account Spotify alla volta.
 
 ### Sviluppo locale (senza ricostruire tutto lo stack)
 
