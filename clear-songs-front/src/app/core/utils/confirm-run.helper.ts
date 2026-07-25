@@ -1,3 +1,7 @@
+/**
+ * Helper utilities for confirmation dialogs with async operations.
+ * Combines dialog confirmation with loading state management and notifications.
+ */
 import { Dialog } from '@angular/cdk/dialog';
 import { Observable, of } from 'rxjs';
 import { catchError, filter, finalize, switchMap } from 'rxjs/operators';
@@ -6,6 +10,7 @@ import { LoadingService } from '../services/loading.service';
 import { NotificationService } from '../services/notification.service';
 import { ConfirmDialogOptions, openConfirmDialog } from './modal-helper';
 
+/** Dependencies required for confirmation dialog operations. */
 export interface ConfirmAndRunDeps {
   dialog: Dialog;
   loadingService: LoadingService;

@@ -1,8 +1,22 @@
+/**
+ * Pure functions for transforming and filtering artist data in the dashboard.
+ * Contains sorting, pagination, and range normalization logic.
+ */
 import { ArtistSummary } from '../../core/models/artist.model';
 
+/** Column to sort artists by. */
 export type ArtistSortColumn = 'name' | 'count';
+
+/** Sort direction. */
 export type SortDirection = 'asc' | 'desc';
 
+/**
+ * Filters artists by search term and sorts by the specified column.
+ * @param artists - The artists to filter and sort
+ * @param search - Search term to filter by name (case-insensitive)
+ * @param column - Column to sort by (name or count)
+ * @param direction - Sort direction (asc or desc)
+ */
 export function filterAndSortArtists(
   artists: ArtistSummary[],
   search: string,
@@ -22,10 +36,22 @@ export function filterAndSortArtists(
   });
 }
 
+/**
+ * Paginates an array of items.
+ * @param items - The items to paginate
+ * @param page - The current page number (1-indexed)
+ * @param pageSize - The number of items per page
+ */
 export function paginate<T>(items: T[], page: number, pageSize: number): T[] {
   return items.slice((page - 1) * pageSize, page * pageSize);
 }
 
+/**
+ * Generates an array of page numbers for pagination UI with ellipsis.
+ * Returns a window of pages around the current page, with '...' for gaps.
+ * @param total - Total number of pages
+ * @param current - Current page number
+ */
 export function visiblePageNumbers(total: number, current: number): (number | string)[] {
   if (total <= 4) {
     return Array.from({ length: total }, (_, index) => index + 1);
@@ -39,6 +65,13 @@ export function visiblePageNumbers(total: number, current: number): (number | st
   return pages.at(-1) === total ? pages : [...pages, '...', total];
 }
 
+/**
+ * Normalizes a min/max range, ensuring min <= max and both are within [0, cap].
+ * Swaps values if min > max.
+ * @param min - Minimum value
+ * @param max - Maximum value
+ * @param cap - Maximum allowed value
+ */
 export function normalizeRange(min: number, max: number, cap: number): [number, number] {
   const normalizedMin = Math.max(0, Math.min(min, cap));
   const normalizedMax = Math.max(0, Math.min(max, cap));

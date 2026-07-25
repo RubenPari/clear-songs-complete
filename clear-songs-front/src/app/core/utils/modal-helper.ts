@@ -1,3 +1,7 @@
+/**
+ * Modal helper utilities for opening confirmation dialogs.
+ * Provides a consistent API for displaying confirm/cancel dialogs across the app.
+ */
 import { Dialog, DialogConfig } from '@angular/cdk/dialog';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -7,6 +11,7 @@ import {
   ConfirmDialogData,
 } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
+/** Options for configuring a confirmation dialog. */
 export interface ConfirmDialogOptions {
   title: string;
   message: string;
@@ -26,7 +31,11 @@ export function baseDialogConfig<D>(data: D): DialogConfig<D, any> {
   };
 }
 
-// Opens confirm dialog.
+/**
+ * Opens a confirmation dialog and returns an observable that emits true if confirmed.
+ * @param dialog - The Angular CDK Dialog service
+ * @param options - The dialog configuration options
+ */
 export function openConfirmDialog(
   dialog: Dialog,
   options: ConfirmDialogOptions,
