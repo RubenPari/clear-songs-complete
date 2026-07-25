@@ -8,8 +8,11 @@
     "start": "ng serve --port 4200 --open",
     "prebuild": "npm run env",
     "build": "ng build",
+    "prebuild:prod": "npm run env",
     "build:prod": "ng build --configuration production",
+    "prewatch": "npm run env",
     "watch": "ng build --watch --configuration development",
+    "pretest": "npm run env",
     "test": "ng test",
     "lint": "ng lint"
   },

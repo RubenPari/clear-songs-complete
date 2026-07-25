@@ -10,7 +10,7 @@
  * - spotifyRedirectUri
  */
 export const environmentAuto = {
-  apiUrl: 'https://clear-songs-api.fly.dev',
+  apiUrl: 'http://localhost:3000',
   spotifyClientId: '25e740a943ea493d907b6413bd300571',
-  spotifyRedirectUri: 'https://clear-songs-web.fly.dev/callback',
+  spotifyRedirectUri: 'http://localhost:4200/callback',
 };
